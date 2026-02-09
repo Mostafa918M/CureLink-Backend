@@ -39,19 +39,6 @@ cure-link/
 └── .env             # Environment variables
 ```
 
-## 🛠️ Generate Resources
-
-Use the CLI to generate new resources:
-
-```bash
-cname g resource user
-```
-
-This will create:
-- Controller with CRUD operations
-- Service layer
-- Routes with validation
-- Validator middleware
 
 ## 📝 Available Scripts
 
@@ -72,12 +59,7 @@ This will create:
 ### Health Check
 `GET /health` - Check if server is running
 
-### Add your routes here
-After generating resources, register them in `app.js`:
 
-```javascript
-app.use('/api/users', require('./routes/user.routes'));
-```
 
 ## 🤝 Contributing
 
