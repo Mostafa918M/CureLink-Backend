@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const { globalError, handleNotFound } = require('./middlewares/globalErrorHandler');
 //import routes here
 const authRoutes = require('./routes/auth.routes');
+const donationRoutes = require('./routes/Donation.routes');
 
 const app = express();
 
@@ -17,7 +18,7 @@ app.use('/health', (req, res) => {
 
 // TODO: Add your routes here
 app.use('/api/auth', authRoutes);
-
+app.use('/api/donations', donationRoutes);
 app.use(handleNotFound);
 app.use(globalError);
 
