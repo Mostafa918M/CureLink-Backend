@@ -36,6 +36,7 @@ const userSchema = new mongoose.Schema({
         required: [true, "Phone number is required"],
         match: [/^(010|011|012|015)\d{8}$/, "Invalid phone number format."],
     },
+
     role: {
         type: String,
         enum: ["donor", "admin", "superadmin"],
