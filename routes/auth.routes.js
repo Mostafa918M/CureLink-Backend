@@ -10,7 +10,7 @@ router.post("/resend-verification", authValidator.resendEmailVerification, authC
 router.post("/login", authValidator.login, authController.login);
 router.post("/refresh-token", authController.refreshToken);
 router.post("/logout", authController.logout);
-router.post("/logout-all", authController.logoutAll);
+router.post("/logout-all",authenticate, authController.logoutAll);
 router.get("/me", authenticate, authController.getMe);
 
 module.exports = router;

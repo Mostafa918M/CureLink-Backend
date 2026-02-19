@@ -52,16 +52,17 @@ const authValidator = {
   ],
 
   login: [
-    body("identifier")
+    body("email")
       .trim()
       .notEmpty()
-      .withMessage("Email or phone number is required").custom((value) => {
+      .withMessage("Email or phone number is required")
+      .custom((value) => {
         const isEmail = /^\S+@\S+\.\S+$/.test(value);
-        const isEgPhone = egyptPhoneRegex.test(value);
-        if (!isEmail && !isEgPhone) return new ApiError("Identifier must be a valid email or Egyptian phone");
+        // const isEgPhone = egyptPhoneRegex.test(value);
+        if (!isEmail) return new ApiError("Identifier must be a valid email");
         return true;
-      }),
-    body("password").notEmpty().withMessage("Password is required"),
+      })
+    ,body("password").notEmpty().withMessage("Password is required"),
     handleValidationErrors,
   ],
 

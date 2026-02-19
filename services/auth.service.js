@@ -2,6 +2,8 @@ const User = require("../models/user.model");
 const ApiError = require("../utils/apiError");
 const { generateOTP } = require("../utils/otp");
 const TokenUtils = require("../utils/tokenUtils");
+const bcrypt = require('bcryptjs');
+
 
 class AuthService {
   async register(data) {
@@ -60,7 +62,7 @@ class AuthService {
       user._id,
       ipAddress
     );
-    TokenUtils.setTokenCookies(res, accessToken, refreshToken);
+    TokenUtils.setTokenCookies(res,accessToken,refreshToken);
     return {
       user: {
         userId: user._id,
@@ -99,7 +101,7 @@ class AuthService {
     const refreshToken = await TokenUtils.rotateRefreshToken(oldRefreshToken, ipAddress);
     const user = tokenDoc.user;
     const accessToken = TokenUtils.generateAccessToken(user._id, user.role);
-    TokenUtils.setTokenCookies(res, accessToken, refreshToken);
+    TokenUtils.setTokenCookies(res, refreshToken);
     return {
       user: {
         userId: user._id,
@@ -114,14 +116,50 @@ class AuthService {
   }
 
   async login(data) {
-    // Placeholder for login logic (generate tokens etc)
-    return { message: "Login placeholder" };
+    const { email, password,ipAddress } = data;
+    // console.log(password);
+    
+    if(!email || !password){
+       throw new ApiError("email and password are required")
+    }
+
+    // Find the User by Email
+    const user = await User.findOne({ email }).select("+password");
+    // console.log(user);
+    
+    if (!user) {
+      throw new ApiError("Invalid email or password", 400);
+    }
+
+      // check password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new ApiError("Invalid email or password", 400);
+    }
+
+    // generate token & store refresh token in DB
+    const accessToken = TokenUtils.generateAccessToken(user._id, user.role);
+    const refreshToken =await TokenUtils.generateRefreshToken(user._id,ipAddress);
+
+   let{password:_,...userData}=user.toObject()
+
+    return {
+      user:userData,
+      accessToken,
+      refreshToken
+     };
   }
 
 
-  async logout(token) {
-    // Placeholder for logout logic
-    return { message: "Logout placeholder" };
+  async logout(payload) {
+    const { oldRefreshToken, ipAddress } = payload
+    if (!oldRefreshToken) {
+       throw new ApiError("No refresh token provided",400);
+   }
+
+  //search refresh token in db and revoke it
+   await TokenUtils.revokeToken(oldRefreshToken, ipAddress);
+    return { loggedOut: true};
   }
 
   async logoutAll(user) {
@@ -130,8 +168,17 @@ class AuthService {
   }
 
   async getMe(userId) {
-    // Placeholder for get current user logic
-    return { message: "Get Me placeholder" };
+    let userData=await User
+    .findById(userId)
+    .select("-password")
+    .lean()
+    
+    if(!userData){
+       throw new ApiError("user not found",404)
+      }
+    return { 
+      user:userData,
+     };
   }
 }
 

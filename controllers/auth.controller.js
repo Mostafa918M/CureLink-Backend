@@ -2,6 +2,7 @@ const asyncErrorHandler = require("../utils/asyncErrorHandler");
 const ApiError = require("../utils/apiError");
 const sendResponse = require("../utils/sendResponse");
 const AuthService = require("../services/auth.service");
+const TokenUtils = require("../utils/tokenUtils");
 
 class AuthController {
   async register(req, res) {
@@ -71,15 +72,24 @@ class AuthController {
   }
 
     async login(req, res) {
-    const result = await AuthService.login(req.body);
+      const userData = {
+      email: req.body.email,
+      password: req.body.password,
+      ipAddress: req.ip
+    };
+
+    const result = await AuthService.login(userData);
+    TokenUtils.setTokenCookies(res,result.refreshToken)
+    
     return sendResponse(
       res,
       200,
       "success",
       "User logged in successfully",
-      result
+     { user: result.user, accessToken: result.accessToken }
     );
   }
+
 //
   async logout(req, res) {
     const payload = {
@@ -87,7 +97,12 @@ class AuthController {
       ipAddress: req.ip,
     }
     const result = await AuthService.logout(payload);
-    return sendResponse(res, 200, "success", "Logged out successfully", result);
+    return sendResponse(
+      res, 
+      200, 
+      "success",
+      "Logged out successfully", 
+      result);
   }
 
   async logoutAll(req, res) {

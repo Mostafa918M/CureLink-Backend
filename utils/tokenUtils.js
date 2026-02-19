@@ -124,7 +124,7 @@ class TokenUtils {
 
     return newToken;
   }
-  static setTokenCookies(res, accessToken, refreshToken) {
+  static setTokenCookies(res,accessToken ,refreshToken) {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
