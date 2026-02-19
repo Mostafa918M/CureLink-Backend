@@ -130,13 +130,5 @@ const donationSchema = new mongoose.Schema(
   }
 );
 
-/* Auto flag expired donation */
-donationSchema.pre('save', function (next) {
-  if (this.expiryDate < new Date()) {
-    this.status = 'expired';
-    this.isExpiredAutoFlagged = true;
-  }
-  next();
-});
 
 module.exports = mongoose.model('Donation', donationSchema);
