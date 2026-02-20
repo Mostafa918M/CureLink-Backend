@@ -2,6 +2,7 @@ const User = require("../models/user.model");
 const ApiError = require("../utils/apiError");
 const { generateOTP } = require("../utils/otp");
 const TokenUtils = require("../utils/tokenUtils");
+const mailer = require("../utils/mailer");
 const bcrypt = require('bcryptjs');
 
 
@@ -27,6 +28,9 @@ class AuthService {
       otp,
       otpExpiry,
     });
+
+    
+    mailer.sendVerificationOTP(user, otp).catch(err => console.error('Failed to send registration email:', err));
 
     return {
       user: {
@@ -57,6 +61,9 @@ class AuthService {
     user.otp = undefined;
     user.otpExpiry = undefined;
     await user.save();
+
+    mailer.sendWelcomeEmail(user).catch(err => console.error('Failed to send welcome email:', err));
+
     const accessToken = TokenUtils.generateAccessToken(user._id, user.role);
     const refreshToken = await TokenUtils.generateRefreshToken(
       user._id,
@@ -89,6 +96,12 @@ class AuthService {
     user.otp = otp;
     user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
+
+    const mailSent = await mailer.sendResendOTP(user, otp);
+    if (!mailSent) {
+      throw new ApiError("Failed to send verification email. Please try again later.", 500);
+    }
+
     return { message: "Verification email resent successfully" };
   }
 
