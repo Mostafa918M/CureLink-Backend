@@ -19,7 +19,7 @@ app.use('/health', (req, res) => {
 });
 
 // TODO: Add your routes here
-app.use('/api/auth', authRoutes);
+app.use('/api/v1/auth', authRoutes);
 
 app.use(handleNotFound);
 app.use(globalError);

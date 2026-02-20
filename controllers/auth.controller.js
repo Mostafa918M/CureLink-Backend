@@ -71,37 +71,38 @@ class AuthController {
     );
   }
 
-    async login(req, res) {
-      const userData = {
+  async login(req, res) {
+    const userData = {
       email: req.body.email,
       password: req.body.password,
-      ipAddress: req.ip
+      ipAddress: req.ip,
+      res
     };
 
     const result = await AuthService.login(userData);
-    TokenUtils.setTokenCookies(res,result.refreshToken)
-    
+
     return sendResponse(
       res,
       200,
       "success",
       "User logged in successfully",
-     { user: result.user, accessToken: result.accessToken }
+      result
     );
   }
 
-//
+  //
   async logout(req, res) {
     const payload = {
       oldRefreshToken: req.cookies.refreshToken,
       ipAddress: req.ip,
+      res
     }
     const result = await AuthService.logout(payload);
     return sendResponse(
-      res, 
-      200, 
+      res,
+      200,
       "success",
-      "Logged out successfully", 
+      "Logged out successfully",
       result);
   }
 
@@ -109,6 +110,8 @@ class AuthController {
     const payload = {
       oldRefreshToken: req.cookies.refreshToken,
       ipAddress: req.ip,
+      res,
+      userId: req.user?.id
     }
     const result = await AuthService.logoutAll(payload);
     return sendResponse(

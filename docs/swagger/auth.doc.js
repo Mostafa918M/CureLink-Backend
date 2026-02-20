@@ -7,7 +7,7 @@
 
 /**
  * @swagger
- * /api/auth/register:
+ * api/v1/auth/register:
  *   post:
  *     summary: Register a new user account
  *     description: This endpoint creates a new user with basic profile details and returns the created user object. The user is created with a default role of donor and is initially not verified.
@@ -33,7 +33,7 @@
 
 /**
  * @swagger
- * /api/auth/verify-email:
+ * /api/v1/auth/verify-email:
  *   post:
  *     summary: Verify email with OTP
  *     description: Verifies a user's email address using the 6-digit OTP sent during registration or resend. Sets access and refresh tokens in HTTP-only cookies.
@@ -61,7 +61,7 @@
 
 /**
  * @swagger
- * /api/auth/resend-verification:
+ * api/v1/auth/resend-verification:
  *   post:
  *     summary: Resend email verification OTP
  *     description: Generates and sends a new 6-digit OTP to the user's email address.
@@ -89,7 +89,7 @@
 
 /**
  * @swagger
- * /api/auth/refresh-token:
+ * api/v1/auth/refresh-token:
  *   post:
  *     summary: Refresh access token
  *     description: Rotates the refresh token and sets a new access token in cookies. Requires a valid refreshToken in cookies.
@@ -105,6 +105,128 @@
  *         description: Refresh token not found
  *       401:
  *         description: Invalid or expired refresh token
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * api/v1/auth/login:
+ *   post:
+ *     summary: Login user
+ *     description: Authenticates a user by email and password. Sets access and refresh tokens in HTTP-only cookies.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginInput'
+ *     responses:
+ *       200:
+ *         description: User logged in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       400:
+ *         description: Invalid email or password
+ *       403:
+ *         description: Account is locked or deactivated
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * api/v1/auth/logout:
+ *   post:
+ *     summary: Logout user
+ *     description: Revokes the current refresh token and clears access and refresh token cookies.
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Logged out successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     loggedOut:
+ *                       type: boolean
+ *                       example: true
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * api/v1/auth/logout-all:
+ *   post:
+ *     summary: Logout from all devices
+ *     description: Revokes all refresh tokens for the user and clears current cookies.
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged out from all devices successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Logged out from all devices successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     loggedOut:
+ *                       type: boolean
+ *                       example: true
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * api/v1/auth/me:
+ *   get:
+ *     summary: Get current user profile
+ *     description: Returns the profile of the currently authenticated user.
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
  *       500:
  *         description: Server error
  */

@@ -123,6 +123,19 @@
  *           type: string
  *           format: date-time
  *
+ *     LoginInput:
+ *       type: object
+ *       required: [email, password]
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address
+ *         password:
+ *           type: string
+ *           format: password
+ *           description: User's password
+ *
  *     AuthResponse:
  *       type: object
  *       properties:

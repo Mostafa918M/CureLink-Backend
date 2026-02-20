@@ -62,7 +62,7 @@ class AuthService {
       user._id,
       ipAddress
     );
-    TokenUtils.setTokenCookies(res,accessToken,refreshToken);
+    TokenUtils.setTokenCookies(res, accessToken, refreshToken);
     return {
       user: {
         userId: user._id,
@@ -94,14 +94,14 @@ class AuthService {
 
   async refreshToken(data) {
     const { oldRefreshToken, ipAddress, res } = data;
-    if(!oldRefreshToken){
+    if (!oldRefreshToken) {
       throw new ApiError("Refresh token not found", 404);
     }
-    const tokenDoc = await TokenUtils.verifyRefreshToken(oldRefreshToken); 
+    const tokenDoc = await TokenUtils.verifyRefreshToken(oldRefreshToken);
     const refreshToken = await TokenUtils.rotateRefreshToken(oldRefreshToken, ipAddress);
     const user = tokenDoc.user;
     const accessToken = TokenUtils.generateAccessToken(user._id, user.role);
-    TokenUtils.setTokenCookies(res, refreshToken);
+    TokenUtils.setTokenCookies(res, accessToken, refreshToken);
     return {
       user: {
         userId: user._id,
@@ -116,69 +116,107 @@ class AuthService {
   }
 
   async login(data) {
-    const { email, password,ipAddress } = data;
+    const { email, password, ipAddress, res } = data;
     // console.log(password);
-    
-    if(!email || !password){
-       throw new ApiError("email and password are required")
+
+    if (!email || !password) {
+      throw new ApiError("email and password are required")
     }
 
     // Find the User by Email
     const user = await User.findOne({ email }).select("+password");
     // console.log(user);
-    
+
     if (!user) {
       throw new ApiError("Invalid email or password", 400);
     }
+    if (user.isLocked) {
+      throw new ApiError("Account is locked due to multiple failed login attempts. Please try again later.", 403);
+    }
+    if (!user.isActive) {
+      throw new ApiError("Account is deactivated. Please contact support.", 403);
+    }
 
-      // check password
-    const isMatch = await bcrypt.compare(password, user.password);
+    // check password
+    const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      await user.incLoginAttempts();
       throw new ApiError("Invalid email or password", 400);
     }
+    if (user.failedLoginAttempts > 0) {
+      await user.resetLoginAttempts();
+    }
+    user.lastLogin = Date.now();
+    await user.save();
 
     // generate token & store refresh token in DB
     const accessToken = TokenUtils.generateAccessToken(user._id, user.role);
-    const refreshToken =await TokenUtils.generateRefreshToken(user._id,ipAddress);
+    const refreshToken = await TokenUtils.generateRefreshToken(user._id, ipAddress);
 
-   let{password:_,...userData}=user.toObject()
+    TokenUtils.setTokenCookies(res, accessToken, refreshToken);
+
 
     return {
-      user:userData,
-      accessToken,
-      refreshToken
-     };
+      user: {
+        userId: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        isVerified: user.isVerified,
+      }
+    };
   }
 
 
   async logout(payload) {
-    const { oldRefreshToken, ipAddress } = payload
+    const { oldRefreshToken, ipAddress, res } = payload
     if (!oldRefreshToken) {
-       throw new ApiError("No refresh token provided",400);
-   }
+      throw new ApiError("No refresh token provided", 400);
+    }
 
-  //search refresh token in db and revoke it
-   await TokenUtils.revokeToken(oldRefreshToken, ipAddress);
-    return { loggedOut: true};
+    //search refresh token in db and revoke it
+    await TokenUtils.revokeToken(oldRefreshToken, ipAddress);
+
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    return { loggedOut: true };
   }
 
-  async logoutAll(user) {
-    // Placeholder for logout from all devices logic
-    return { message: "Logout all placeholder" };
+  async logoutAll(payload) {
+    const { oldRefreshToken, ipAddress, res, userId } = payload
+    if (!oldRefreshToken) {
+      throw new ApiError("No refresh token provided", 400);
+    }
+
+    //search refresh token in db and revoke it
+    await TokenUtils.revokeAllUserTokens(userId, ipAddress);
+
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    return { loggedOut: true };
   }
 
   async getMe(userId) {
-    let userData=await User
-    .findById(userId)
-    .select("-password")
-    .lean()
-    
-    if(!userData){
-       throw new ApiError("user not found",404)
+    let user = await User
+      .findById(userId)
+      .lean()
+
+    if (!user) {
+      throw new ApiError("user not found", 404)
+    }
+    return {
+      user: {
+        userId: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        isVerified: user.isVerified,
       }
-    return { 
-      user:userData,
-     };
+    };
   }
 }
 
