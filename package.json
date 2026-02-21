@@ -24,8 +24,12 @@
     "jsonwebtoken": "^9.0.3",
     "module-alias": "^2.3.4",
     "mongoose": "^9.1.5",
+<<<<<<< HEAD
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+=======
+    "multer": "^2.0.2",
+>>>>>>> medicineAndDonationSchemas
     "winston": "^3.11.0"
   },
   "devDependencies": {
