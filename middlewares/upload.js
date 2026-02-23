@@ -1,29 +1,22 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const ApiError = require('../utils/apiError');
 
-// Set up multer storage configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadPath = path.join(__dirname, '..', 'uploads');
-        if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath);
-    }
-        cb(null, uploadPath);
-    },
-    filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + '-' + file.originalname);
-  } 
-});
+const storage = multer.memoryStorage();
 
-// File filter to allow only images
-const fileFilter = (req, file, cb) => {
+const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
-    cb(new Error('Only image files are allowed!'), false);
+    cb(new ApiError('Invalid file type. Please upload only images.', 400), false);
   }
 };
 
-module.exports = multer({ storage, fileFilter });
+const upload = multer({
+  storage: storage,
+  fileFilter: multerFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+});
+
+exports.uploadDonationImages = upload.array('images', 5);

@@ -1,28 +1,21 @@
-// routes/donation.routes.js
 const express = require('express');
-const upload = require('../middlewares/upload');
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 const donationController = require('../controllers/Donation.controller');
-const authenticate = require('../middlewares/auth');
-const authorize = require('../middlewares/auth');
+const { authenticate } = require('../middlewares/auth');
+const { createDonationValidator } = require('../validators/donation.validation');
 
 const router = express.Router();
 
-router.use(authenticate.authenticate);
-router.get('/my-donations', donationController.getMyDonations);
-router.get('/available', donationController.getAvailableDonations);
-router.get('/matched', donationController.getMatchedDonations);
-router.get('/stats', authorize.authorize('admin'), donationController.getDonationStats);//admin
-router.get('/:id', donationController.getDonation);
+router.use(authenticate);
 
-router.post('/', upload.array('images', 5), donationController.createDonation);
-router.patch('/:id', upload.array('images', 5), donationController.updateDonation);
-router.delete('/:id', donationController.deleteDonation);
-
-router.patch('/:id/approve', authorize.authorize('admin'), donationController.approveDonation);//admin
-router.patch('/:id/reject', authorize.authorize('admin'), donationController.rejectDonation);//admin
-router.patch('/:id/match', authorize.authorize('admin'), donationController.matchDonation);//admin
-router.patch('/:id/delivery', donationController.updateDelivery);
-
-router.get('/', donationController.getAllDonations);
+router.post(
+  '/',
+  upload.array('images', 5),
+  createDonationValidator,
+  donationController.createDonation
+);
 
 module.exports = router;
