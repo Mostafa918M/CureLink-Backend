@@ -25,7 +25,6 @@ const options = {
             },
         },
     },
-    // Path to the API docs
     apis: [
         './routes/*.js',
         './controllers/*.js',

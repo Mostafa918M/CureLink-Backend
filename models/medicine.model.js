@@ -20,7 +20,7 @@ const medicineSchema = new mongoose.Schema(
     barcode: {
       type: String,
       unique: true,
-      sparse: true, // allows null values but prevents duplicates
+      sparse: true, 
       trim: true,
     },
 

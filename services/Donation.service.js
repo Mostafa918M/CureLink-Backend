@@ -5,7 +5,7 @@ const Donation = require('../models/donation.model');
 const Medicine = require('../models/medicine.model');
 const ApiError = require('../utils/apiError');
 
-class DonationService {
+class donationService {
   async createDonation(userId, files) {
     const buffers = files.map((f) => f.buffer);
     const extracted = await AiService.extractDataFromImage(buffers);
@@ -107,6 +107,43 @@ class DonationService {
       throw new ApiError('An error occurred while saving the donation to the database', 500);
     }
   }
+  async getAllDonations(query) {
+    const page = parseInt(query.page, 10) || 1;
+    const limit = parseInt(query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
+    const donations = await Donation.find()
+      .populate('donor', 'firstName lastName email phone')
+      .populate('medicine', 'name strength dosageForm category')
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await Donation.countDocuments();
+
+    return {
+      donations,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getDonationById(id) {
+    const donation = await Donation.findById(id)
+      .populate('donor', 'firstName lastName email phone')
+      .populate('medicine', 'name strength dosageForm category')
+      .populate('matchedInstitution', 'firstName lastName email phone'); 
+
+    if (!donation) {
+      throw new ApiError('Donation not found', 404);
+    }
+
+    return donation;
+  }
 }
 
-module.exports = new DonationService();
+module.exports = new donationService();

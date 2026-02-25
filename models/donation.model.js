@@ -92,7 +92,7 @@ const donationSchema = new mongoose.Schema(
 
     matchedInstitution: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Institution',
+      ref: 'User',
       index: true,
     },
 

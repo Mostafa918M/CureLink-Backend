@@ -1,4 +1,4 @@
-const DonationService = require('./Donation.service');
+const donationService = require('./donation.service');
 const AiService = require('./Ai.service');
 const ImageStorageService = require('./imageStorage.service');
 const Donation = require('../models/donation.model');
@@ -10,7 +10,7 @@ jest.mock('./imageStorage.service');
 jest.mock('../models/donation.model');
 jest.mock('../models/medicine.model');
 
-describe('DonationService - createDonation', () => {
+describe('donationService - createDonation', () => {
   const mockUserId = 'user123';
   const mockFiles = [{ buffer: Buffer.from('fake-image-data') }];
 
@@ -24,7 +24,7 @@ describe('DonationService - createDonation', () => {
       donation: { expiryDate: '2020-01-01', quantityAmount: 2, quantityUnit: 'box' },
     });
 
-    await expect(DonationService.createDonation(mockUserId, mockFiles)).rejects.toThrow(
+    await expect(donationService.createDonation(mockUserId, mockFiles)).rejects.toThrow(
       'Sorry, we cannot accept this medicine because it has expired.'
     );
 
@@ -37,7 +37,7 @@ describe('DonationService - createDonation', () => {
       donation: { expiryDate: '2030-01-01' },
     });
 
-    await expect(DonationService.createDonation(mockUserId, mockFiles)).rejects.toThrow(
+    await expect(donationService.createDonation(mockUserId, mockFiles)).rejects.toThrow(
       'AI could not recognize the medicine name'
     );
   });
@@ -56,7 +56,7 @@ describe('DonationService - createDonation', () => {
 
     Donation.create.mockRejectedValue(new Error('Database error'));
 
-    await expect(DonationService.createDonation(mockUserId, mockFiles)).rejects.toThrow(
+    await expect(donationService.createDonation(mockUserId, mockFiles)).rejects.toThrow(
       'An error occurred while saving the donation to the database'
     );
 
@@ -80,7 +80,7 @@ describe('DonationService - createDonation', () => {
     };
     Donation.create.mockResolvedValue(mockDonation);
 
-    const result = await DonationService.createDonation(mockUserId, mockFiles);
+    const result = await donationService.createDonation(mockUserId, mockFiles);
 
     expect(result._id).toBe('don123');
     expect(Medicine.create).toHaveBeenCalled();

@@ -23,7 +23,7 @@
  *           description: Phone number of the user
  *         role:
  *           type: string
- *           enum: [donor, admin, superadmin]
+ *           enum: [donor, admin, superadmin, institution]
  *           default: donor
  *         isVerified:
  *           type: boolean
@@ -153,4 +153,94 @@
  *         timestamp:
  *           type: string
  *           format: date-time
+ *
+ *     Medicine:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         strength:
+ *           type: string
+ *         dosageForm:
+ *           type: string
+ *           enum: [tablet, capsule, syrup, injection, cream, drops, other]
+ *         category:
+ *           type: string
+ *         status:
+ *           type: string
+ *           enum: [pending, approved, rejected]
+ *
+ *     Donation:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         donor:
+ *           oneOf:
+ *             - type: string
+ *             - $ref: '#/components/schemas/User'
+ *         medicine:
+ *           oneOf:
+ *             - type: string
+ *             - $ref: '#/components/schemas/Medicine'
+ *         quantity:
+ *           type: object
+ *           properties:
+ *             amount:
+ *               type: number
+ *             unit:
+ *               type: string
+ *               enum: [box, bottle, strip, unit]
+ *         expiryDate:
+ *           type: string
+ *           format: date
+ *         status:
+ *           type: string
+ *           enum: [pending, admin_review, available, matched, approved_by_institution, delivered, rejected, expired, cancelled]
+ *         priority:
+ *           type: string
+ *           enum: [low, medium, high]
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *
+ *     DonationResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *         data:
+ *           $ref: '#/components/schemas/Donation'
+ *
+ *     DonationsListResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *         data:
+ *           type: object
+ *           properties:
+ *             donations:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Donation'
+ *             pagination:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: number
+ *                 page:
+ *                   type: number
+ *                 limit:
+ *                   type: number
+ *                 pages:
+ *                   type: number
  */
