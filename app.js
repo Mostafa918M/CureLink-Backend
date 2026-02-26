@@ -5,6 +5,7 @@ const { globalError, handleNotFound } = require('./middlewares/globalErrorHandle
 //import routes here
 const authRoutes = require('./routes/auth.routes');
 const { swaggerUi, specs } = require('./config/swagger');
+const donationRoutes = require('./routes/Donation.routes');
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.use('/health', (req, res) => {
 
 // TODO: Add your routes here
 app.use('/api/v1/auth', authRoutes);
-
+app.use('/api/v1/donations', donationRoutes);
 app.use(handleNotFound);
 app.use(globalError);
 
