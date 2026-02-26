@@ -12,6 +12,7 @@ class AuthController {
       email: req.body.email,
       phone: req.body.phone,
       password: req.body.password,
+      role:req.body.role
     };
 
     const result = await AuthService.register(payload);

@@ -3,6 +3,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const { globalError, handleNotFound } = require('./middlewares/globalErrorHandler');
 //import routes here
+const institutionRoutes = require('./routes/institution.routes');
 const authRoutes = require('./routes/auth.routes');
 const { swaggerUi, specs } = require('./config/swagger');
 
@@ -19,6 +20,7 @@ app.use('/health', (req, res) => {
 });
 
 // TODO: Add your routes here
+app.use('/api/v1/institutions', institutionRoutes);
 app.use('/api/v1/auth', authRoutes);
 
 app.use(handleNotFound);
