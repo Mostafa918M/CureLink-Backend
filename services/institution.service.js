@@ -127,7 +127,7 @@ class InstitutionService {
     const skip = (currentPage - 1) * perPage
 
 
-    let allInstitutions=await Institution.find(filter).select("name description logo addresses")
+    let query= Institution.find(filter).select("name description logo addresses")
        .populate({
         path:"user",
         select:"email phone"})
@@ -136,13 +136,15 @@ class InstitutionService {
 
 
     if(search){
-      allInstitutions=allInstitutions
+      query=query
       .sort({ score: { $meta: "textScore" }})
       .select({ score: { $meta: "textScore" } })
     }
     else{
-      allInstitutions=allInstitutions.sort({ createdAt: -1 })
+      query=query.sort({ createdAt: -1 })
     }
+
+    let allInstitutions=await query
 
     return {
       all_institutions:allInstitutions
