@@ -152,13 +152,38 @@ class InstitutionService {
   }
 
 
+  async getOneInstitution(institutionID) {
+    const existingInstitution=await Institution.findOne({
+      _id: institutionID,
+      verificationStatus: "verified"
+    })
+    .populate({
+      path:"user",
+      select:"email phone"
+    }).lean()
+    if(!existingInstitution){
+      throw new ApiError("Institution not found", 404);
+    }
 
-
-
-
-  async getOneInstitution(id) {
-    return `this action gets Institution by #${id}`;
+    return {
+      institutionData:{
+        name: existingInstitution.name,
+        type: existingInstitution.type,
+        description: existingInstitution.description,
+        addresses: existingInstitution.addresses,
+        logo: existingInstitution.logo,
+        email:existingInstitution.user?.email,
+        phone:existingInstitution.user?.phone,
+        joinedAt:existingInstitution.createdAt
+      }
+    }
   }
+
+
+
+
+
+
 
   async postDocuments(id) {
     return `this action upload  Institution documents`;

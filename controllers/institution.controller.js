@@ -65,9 +65,6 @@ class InstitutionController {
       updatedInstitution);
   }
 
-
-
-
   async getAllInstitutions(req, res) {
     const filters={
       search:req.query.search || null,
@@ -85,12 +82,9 @@ class InstitutionController {
 
 
   async getOneInstitution(req, res) {
+    
     const institution = await InstitutionService.getOneInstitution(req.params.id);
-
-    if (!institution) {
-      throw new ApiError("Institution not found", 404);
-    }
-
+    
     return sendResponse(
       res,
       200, 
@@ -103,7 +97,12 @@ class InstitutionController {
 
   async postDocuments(req,res){
     const institution = await InstitutionService.register(req.body);
-    return sendResponse(res, 201, "success", "Institution documents uploaded successfully", institution);
+    return sendResponse(
+      res, 
+      201,
+       "success", 
+       "Institution documents uploaded successfully", 
+       institution);
   }
 
 

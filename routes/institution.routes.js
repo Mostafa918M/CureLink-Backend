@@ -9,12 +9,10 @@ router.post('/register',authenticate,institutionValidator.register, institutionC
 router.get('/profile',authenticate ,institutionController.getProfile);    //get own intitution profile
 router.put('/profile',authenticate ,institutionValidator.updateProfile, institutionController.updateProfile);  //update institution profile
 router.get('/', institutionController.getAllInstitutions);       //get only verified institution for public 
-
-
-router.get('/:id', institutionController.getOneInstitution);     //get institution details for public
+router.get('/:id',institutionValidator.getOneInstitution , institutionController.getOneInstitution);     //get institution details for public
   
 router.post("/documents",authenticate,institutionController.postDocuments)     //upload verification documents 
-router.get("/documents/:id",authenticate,institutionController.getDocuments)      //get institution documents
+router.get("/documents",authenticate,institutionController.getDocuments)      //get institution documents
 router.get("/stats")
 
 module.exports = router;

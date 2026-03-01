@@ -143,7 +143,16 @@ const institutionValidator = {
     body("addresses.*.coordinates.coordinates.*")
       .isFloat()
       .withMessage("Coordinates must be numbers"), 
+  ],
+
+  getOneInstitution:[
+   param("id")
+   .trim()
+   .custom(value=>{mongoose.Types.ObjectId.isValid(value)})
+   .withMessage("Invalid institution ID")
   ]
+
+
 };
 
 module.exports = institutionValidator;
