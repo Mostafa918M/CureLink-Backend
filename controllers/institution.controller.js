@@ -13,8 +13,6 @@ class InstitutionController {
       name: req.body.name,
       type: req.body.type,
       licenseNumber: req.body.licenseNumber,
-      commercialRegister: req.body.commercialRegister,
-      taxCard: req.body.taxCard,
       description: req.body.description,
       addresses: req.body.addresses,
       logo: req.body.logo
@@ -48,8 +46,6 @@ class InstitutionController {
       name: req.body.name,
       type: req.body.type,
       licenseNumber: req.body.licenseNumber,
-      commercialRegister: req.body.commercialRegister,
-      taxCard: req.body.taxCard,
       description: req.body.description,
       addresses: req.body.addresses,
       logo: req.body.logo

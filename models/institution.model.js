@@ -34,14 +34,6 @@ const InstitutionSchema = new mongoose.Schema({
           "Invalid license number format. Allowed: numbers, uppercase letters, hyphens (-), slashes (/), and spaces only. Example: EG-MOH-12345 or 567/2025"
       ]
     },
-    commercialRegister: {
-        type: String,
-        trim: true,
-    },
-    taxCard: {
-        type: String,
-        trim: true,
-    },
 
     description: {
       type: String,

@@ -8,7 +8,7 @@ class InstitutionService {
       throw new ApiError("Only users with role 'institution' can register an institution",403);
     }
 
-    let{name,type,licenseNumber,commercialRegister,taxCard,description,addresses,logo}=data
+    let{name,type,licenseNumber,description,addresses,logo}=data
 
     const existingInstitution = await Institution.findOne({user:owner.id})
 
@@ -21,8 +21,6 @@ class InstitutionService {
       name,
       type,
       licenseNumber,
-      commercialRegister,
-      taxCard,
       description,
       addresses,
       logo
@@ -57,8 +55,7 @@ class InstitutionService {
 
     let existingInstitution=await Institution.findOne({user:payload.id})
     .select(
-        'name type description logo addresses ' +
-        'licenseNumber commercialRegister taxCard '
+        'name type description logo addresses licenseNumber  '
       )
     .lean();
     if(!existingInstitution){
@@ -83,7 +80,7 @@ class InstitutionService {
 
     const updates=Object.keys(updateData)     
 
-    const legalFields = ['commercialRegister', 'taxCard', 'licenseNumber'];
+    const legalFields = ['licenseNumber'];
     const replacingLegalData = legalFields.some(field =>
       updates.includes(field) && updateData[field] !== existingInstitution[field]
       );
@@ -106,8 +103,6 @@ class InstitutionService {
       logo: updatedInstitution.logo,
       addresses: updatedInstitution.addresses,
       licenseNumber: updatedInstitution.licenseNumber,
-      commercialRegister: updatedInstitution.commercialRegister,
-      taxCard: updatedInstitution.taxCard,
       // verificationStatus: updatedInstitution.verificationStatus
     };
   }
