@@ -9,23 +9,19 @@ const router = express.Router();
 
 router.use(authenticate);
 
-router.get(
-  '/',
-  authorize('admin', 'superadmin', 'institution'),
-  donationController.getAll
-);
+router.get('/', authorize('admin', 'superadmin', 'institution'), donationController.getAll);
 
-router.get(
+router.get('/:id', authorize('admin', 'superadmin', 'institution'), donationController.getOne);
+
+router.post('/', uploadDonationImages, DonationValidator.createDonation, donationController.create);
+
+router.patch(
   '/:id',
-  authorize('admin', 'superadmin', 'institution'),
-  donationController.getOne
+  uploadDonationImages,
+  DonationValidator.updateDonation,
+  donationController.update
 );
 
-router.post(
-  '/',
-  uploadDonationImages,
-  DonationValidator.createDonation,
-  donationController.create
-);
+router.delete('/:id', donationController.delete);
 
 module.exports = router;
