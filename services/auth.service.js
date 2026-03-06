@@ -8,7 +8,7 @@ const bcrypt = require('bcryptjs');
 
 class AuthService {
   async register(data) {
-    const { firstName, lastName, email, phone, password } = data;
+    const { firstName, lastName, email, phone, password,role } = data;
     const existedEmail = await User.findOne({ email });
     if (existedEmail) {
       throw new ApiError("Email already in use", 400);
@@ -25,11 +25,13 @@ class AuthService {
       email,
       phone,
       password,
+      role,
       otp,
       otpExpiry,
     });
 
-    
+    const accessToken = TokenUtils.generateAccessToken(user._id, user.role);
+
     mailer.sendVerificationOTP(user, otp).catch(err => console.error('Failed to send registration email:', err));
 
     return {
@@ -41,6 +43,7 @@ class AuthService {
         phone: user.phone,
         role: user.role,
         isVerified: user.isVerified,
+        accessToken
       },
     };
   }
