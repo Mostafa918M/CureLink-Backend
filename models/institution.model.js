@@ -96,7 +96,6 @@ const InstitutionSchema = new mongoose.Schema({
 
 )
 
-InstitutionSchema.index({user: 1 })
 
 InstitutionSchema.index({
   name: "text",
