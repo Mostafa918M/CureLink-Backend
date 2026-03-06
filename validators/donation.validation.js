@@ -40,6 +40,11 @@ const donationValidator = {
       .isIn(['low', 'medium', 'high'])
       .withMessage('Priority must be low, medium, or high')
       .bail(),
+    body('matchedInstitution')
+      .optional()
+      .isMongoId()
+      .withMessage('Invalid institution ID format')
+      .bail(),
     handleValidationErrors,
   ],
   updateDonation: [

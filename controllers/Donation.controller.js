@@ -19,7 +19,8 @@ class DonationController {
       return next(new ApiError('Please upload at least one image', 400));
     }
 
-    const result = await donationService.createDonation(req.user._id, req.files);
+    const result = await donationService.createDonation(req.user._id, req.files, req.body);
+
     return sendResponse(res, 201, 'success', 'Donation created successfully', result);
   }
 

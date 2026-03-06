@@ -6,7 +6,7 @@ const Medicine = require('../models/medicine.model');
 const ApiError = require('../utils/apiError');
 
 class donationService {
-  async createDonation(userId, files) {
+  async createDonation(userId, files, bodyData = {}) {
     const buffers = files.map((f) => f.buffer);
     const extracted = await AiService.extractDataFromImage(buffers);
 
@@ -72,7 +72,7 @@ class donationService {
         : 'unit';
       const quantityAmount = Number(donData.quantityAmount) || 1;
 
-      const donation = await Donation.create({
+      const donationPayload = {
         donor: userId,
         medicine: medicine._id,
         quantity: {
@@ -93,9 +93,21 @@ class donationService {
             notes: 'Data extracted and request created via AI',
           },
         ],
-      });
+      };
+
+      if (bodyData.matchedInstitution) {
+        donationPayload.matchedInstitution = bodyData.matchedInstitution;
+        donationPayload.matchedAt = new Date();
+      }
+
+      const donation = await Donation.create(donationPayload);
 
       await donation.populate('medicine', 'name strength dosageForm category');
+
+      if (donation.matchedInstitution) {
+        await donation.populate('matchedInstitution', 'firstName lastName email phone');
+      }
+
       return donation;
     } catch (error) {
       if (uploadedImages && uploadedImages.length > 0) {
