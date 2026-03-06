@@ -19,7 +19,7 @@ class TokenUtils {
       .createHash("sha256")
       .update(token)
       .digest("hex");
-  
+
     const expiresAt = new Date(Date.now() + expireDays * 24 * 60 * 60 * 1000);
     const refreshToken = await RefreshToken.create({
       hashToken,
@@ -32,8 +32,8 @@ class TokenUtils {
 
   static verifyAccessToken(token) {
     try {
-     const decoded= jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-     return decoded;
+      const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      return decoded;
     } catch (err) {
       throw new Error("Invalid or expired access token");
     }
@@ -45,26 +45,26 @@ class TokenUtils {
       .update(token)
       .digest("hex");
 
-    const refreshToken = await RefreshToken.findOne({hashToken}).populate("user");
+    const refreshToken = await RefreshToken.findOne({ hashToken }).populate("user");
 
-      if (!refreshToken) {
-    throw new Error("Refresh token not found");
-  }
+    if (!refreshToken) {
+      throw new Error("Refresh token not found");
+    }
 
-  if (refreshToken.isExpired) {
-    throw new Error("Refresh token expired");
-  }
+    if (refreshToken.isExpired) {
+      throw new Error("Refresh token expired");
+    }
 
-  if (refreshToken.revokedAt) {
-    throw new Error("Refresh token revoked");
-  }
+    if (refreshToken.revokedAt) {
+      throw new Error("Refresh token revoked");
+    }
 
-  if (refreshToken.replacedByToken) {
-    throw new Error("Refresh token has been rotated");
-  }
-  if (!refreshToken.isActive) {
-    throw new Error("Refresh token is inactive");
-  }
+    if (refreshToken.replacedByToken) {
+      throw new Error("Refresh token has been rotated");
+    }
+    if (!refreshToken.isActive) {
+      throw new Error("Refresh token is inactive");
+    }
 
     return refreshToken;
   }
@@ -74,7 +74,7 @@ class TokenUtils {
       .createHash("sha256")
       .update(token)
       .digest("hex");
-      
+
     const refreshToken = await RefreshToken.findOne({ hashToken });
 
     if (!refreshToken || !refreshToken.isActive) {
@@ -123,6 +123,20 @@ class TokenUtils {
     await oldRefreshToken.save();
 
     return newToken;
+  }
+  static setTokenCookies(res,accessToken ,refreshToken) {
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
+      sameSite: "Strict",
+      maxAge: 15 * 60 * 1000,
+    });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
   }
 }
 
