@@ -14,7 +14,7 @@ const imageOnlyFilter = (req, file, cb) => {
 
 //for institution documents
 const documentFilter = (req, file, cb) => {
-  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+  const allowed = ['image/jpeg', 'image/png', 'image/webp' ,'application/pdf']
   if (allowed.includes(file.mimetype)) {
     cb(null, true)
   } else {
@@ -36,8 +36,10 @@ const uploadDocuments = multer({
 
 exports.uploadInstitutionLogo = uploadLogo.single('logo');
 exports.uploadInstitutionDocuments = uploadDocuments.fields([
-  { name: 'commercial_register', maxCount: 1 },
-  { name: 'tax_card',            maxCount: 1 },
-  { name: 'licenseNumber',       maxCount: 1 },
+  { name: 'commercial_register',     maxCount: 1 },
+  { name: 'tax_card',                maxCount: 1 },
+  { name: 'licenseNumber',           maxCount: 1 },
+  { name: 'founding_decision',       maxCount: 1 },  
+  { name: 'association_registration',maxCount: 1 },
   { name: 'other',               maxCount: 3 },
 ]);

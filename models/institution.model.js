@@ -71,6 +71,11 @@ const InstitutionSchema = new mongoose.Schema({
       default:null
     },
 
+    logoPublicId:{
+      type: String,
+      default:null
+    },
+
     verificationStatus: {
       type: String,
       enum: ["pending", "under_review", "verified", "rejected"],

@@ -9,16 +9,20 @@ const Institution = require("../models/institution.model");
 class InstitutionController {
 
    async register(req, res) {
+    let address=req.body.addresses
+    if(address){
+      address=JSON.parse(address)
+    }
     const institurionData = {
       name: req.body.name,
       type: req.body.type,
       licenseNumber: req.body.licenseNumber,
       description: req.body.description,
-      addresses: req.body.addresses,
-      logo: req.body.logo
+      addresses: address,
+      logo: req.file
     };
 
-    const institution = await InstitutionService.register(institurionData,req.user);
+    const institution = await InstitutionService.register(institurionData,req.userId);
 
     return sendResponse(
       res,
@@ -30,7 +34,7 @@ class InstitutionController {
 
 
   async getProfile(req, res) {    
-    const result = await InstitutionService.getProfile(req.user);
+    const result = await InstitutionService.getProfile(req.userId);
 
     return sendResponse(
       res,
@@ -42,16 +46,21 @@ class InstitutionController {
 
 
   async updateProfile(req, res) {
+    let address=req.body.addresses
+    if (address){
+      address=JSON.parse(address)
+    }
+
     const institurionData = {
       name: req.body.name,
       type: req.body.type,
       licenseNumber: req.body.licenseNumber,
       description: req.body.description,
-      addresses: req.body.addresses,
-      logo: req.body.logo
+      addresses: address,
+      logo: req.file?.buffer
     };
 
-    const updatedInstitution = await InstitutionService.updateProfile(req.user,institurionData);
+    const updatedInstitution = await InstitutionService.updateProfile(req.userId,institurionData);
 
     return sendResponse(
       res,
@@ -92,24 +101,24 @@ class InstitutionController {
 
 
   async postDocuments(req,res){
-    const institution = await InstitutionService.register(req.body);
+    const institution = await InstitutionService.postDocuments(req.userId,req.files);
     return sendResponse(
       res, 
       201,
-       "success", 
-       "Institution documents uploaded successfully", 
-       institution);
+      "success", 
+      "Institution documents uploaded successfully", 
+      institution);
   }
 
 
   async getDocuments(req,res){
-     const institution = await InstitutionService.getOneInstitution(req.params.id);
-
-    if (!institution) {
-      throw new ApiError("Institution not found", 404);
-    }
-
-    return sendResponse(res, 200, "success", "Institution documents fetched successfully", institution);
+     const institution = await InstitutionService.getDocuments(req.userId);
+    return sendResponse(
+      res, 
+      200, 
+      "success", 
+      "Institution documents fetched successfully",
+      institution);
   }
 
 }

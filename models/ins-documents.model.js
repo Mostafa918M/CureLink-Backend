@@ -34,7 +34,7 @@ const InstitutionDocumentSchema = new mongoose.Schema({
 
 InstitutionDocumentSchema.index({ institution: 1, type: 1 });      
 
-InstitutionDocumentSchema.statics.getRequiredStatus=async function (institutionID) {
+InstitutionDocumentSchema.statics.getRequiredUploaded=async function (institutionID) {
   // get model that name is institution & get document with institutionID and return type of this document
   const institution =await mongoose.model("Institution").findById(institutionID,"type")
  if (!institution) throw new ApiError("Institution not found", 404);
@@ -57,6 +57,12 @@ InstitutionDocumentSchema.statics.getRequiredStatus=async function (institutionI
     type:doc,
     uploaded: !!allDocs[doc],
   }))
+
+  // بيرجع object فيه:
+  // {
+  // type: "tax_card",
+  // uploaded: true  // أو false لو مش موجود
+  // }
   
 }
 
