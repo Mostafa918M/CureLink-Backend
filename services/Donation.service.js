@@ -6,7 +6,7 @@ const Medicine = require('../models/medicine.model');
 const ApiError = require('../utils/apiError');
 
 class donationService {
-  async createDonation(userId, files) {
+  async createDonation(userId, files, bodyData = {}) {
     const buffers = files.map((f) => f.buffer);
     const extracted = await AiService.extractDataFromImage(buffers);
 
@@ -72,7 +72,7 @@ class donationService {
         : 'unit';
       const quantityAmount = Number(donData.quantityAmount) || 1;
 
-      const donation = await Donation.create({
+      const donationPayload = {
         donor: userId,
         medicine: medicine._id,
         quantity: {
@@ -93,9 +93,21 @@ class donationService {
             notes: 'Data extracted and request created via AI',
           },
         ],
-      });
+      };
+
+      if (bodyData.matchedInstitution) {
+        donationPayload.matchedInstitution = bodyData.matchedInstitution;
+        donationPayload.matchedAt = new Date();
+      }
+
+      const donation = await Donation.create(donationPayload);
 
       await donation.populate('medicine', 'name strength dosageForm category');
+
+      if (donation.matchedInstitution) {
+        await donation.populate('matchedInstitution', 'firstName lastName email phone');
+      }
+
       return donation;
     } catch (error) {
       if (uploadedImages && uploadedImages.length > 0) {
@@ -136,13 +148,83 @@ class donationService {
     const donation = await Donation.findById(id)
       .populate('donor', 'firstName lastName email phone')
       .populate('medicine', 'name strength dosageForm category')
-      .populate('matchedInstitution', 'firstName lastName email phone'); 
+      .populate('matchedInstitution', 'firstName lastName email phone');
 
     if (!donation) {
       throw new ApiError('Donation not found', 404);
     }
 
     return donation;
+  }
+  async updateDonation(donationId, userId, userRole, updateData, files) {
+    const donation = await Donation.findById(donationId);
+    if (!donation) throw new ApiError('Donation not found', 404);
+
+    if (userRole === 'donor' && donation.donor.toString() !== userId.toString()) {
+      throw new ApiError('You are not authorized to update this donation', 403);
+    }
+
+    if (userRole === 'donor' && !['pending', 'rejected'].includes(donation.status)) {
+      throw new ApiError('You can only update pending or rejected donations', 400);
+    }
+
+    if (files && files.length > 0) {
+      const uploadPromises = files.map((file) => ImageStorageService.uploadImage(file.buffer));
+      const uploadedImages = await Promise.all(uploadPromises);
+
+      const newImageObjects = uploadedImages.map((img) => ({
+        url: img.url,
+        caption: 'Updated Image',
+      }));
+
+      updateData.images = [...donation.images, ...newImageObjects];
+    }
+
+    delete updateData.donor;
+    delete updateData.medicine;
+    delete updateData.statusHistory;
+
+    if (updateData.quantityAmount || updateData.quantityUnit) {
+      updateData.quantity = {
+        amount: updateData.quantityAmount || donation.quantity.amount,
+        unit: updateData.quantityUnit || donation.quantity.unit,
+      };
+      delete updateData.quantityAmount;
+      delete updateData.quantityUnit;
+    }
+
+    const updatedDonation = await Donation.findByIdAndUpdate(
+      donationId,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    ).populate('medicine', 'name strength dosageForm category');
+
+    return updatedDonation;
+  }
+
+  async deleteDonation(donationId, userId, userRole) {
+    const donation = await Donation.findById(donationId);
+    if (!donation) throw new ApiError('Donation not found', 404);
+
+    if (userRole === 'donor' && donation.donor.toString() !== userId.toString()) {
+      throw new ApiError('You are not authorized to delete this donation', 403);
+    }
+
+    if (userRole === 'donor' && !['pending', 'rejected'].includes(donation.status)) {
+      throw new ApiError('You can only delete pending or rejected donations', 400);
+    }
+
+    if (donation.images && donation.images.length > 0) {
+      const deletePromises = donation.images.map((img) => {
+        const urlParts = img.url.split('/');
+        const filename = urlParts[urlParts.length - 1];
+        const publicId = `medicine-donations/${filename.split('.')[0]}`;
+        return ImageStorageService.deleteImage(publicId);
+      });
+      await Promise.allSettled(deletePromises);
+    }
+
+    await donation.deleteOne();
   }
 }
 

@@ -1,18 +1,17 @@
-const asyncErrorHandler = require("../utils/asyncErrorHandler");
-const ApiError = require("../utils/apiError");
-const sendResponse = require("../utils/sendResponse");
-const donationService = require("../services/donation.service");
-
+const asyncErrorHandler = require('../utils/asyncErrorHandler');
+const ApiError = require('../utils/apiError');
+const sendResponse = require('../utils/sendResponse');
+const donationService = require('../services/donation.service');
 
 class DonationController {
   async getAll(req, res, next) {
     const result = await donationService.getAllDonations(req.query);
-    return sendResponse(res, 200, "success", "Donations fetched successfully", result);
+    return sendResponse(res, 200, 'success', 'Donations fetched successfully', result);
   }
 
   async getOne(req, res, next) {
     const donation = await donationService.getDonationById(req.params.id);
-    return sendResponse(res, 200, "success", "Donation fetched successfully", donation);
+    return sendResponse(res, 200, 'success', 'Donation fetched successfully', donation);
   }
 
   async create(req, res, next) {
@@ -20,28 +19,27 @@ class DonationController {
       return next(new ApiError('Please upload at least one image', 400));
     }
 
-    const result = await donationService.createDonation(req.user._id, req.files);
-    return sendResponse(res, 201, "success", "Donation created successfully", result);
+    const result = await donationService.createDonation(req.user._id, req.files, req.body);
+
+    return sendResponse(res, 201, 'success', 'Donation created successfully', result);
   }
 
   async update(req, res, next) {
-    // TODO: add service logic
+    const result = await donationService.updateDonation(
+      req.params.id,
+      req.userId,
+      req.userRole,
+      req.body,
+      req.files
+    );
 
-    if (!true) {
-      throw new ApiError("Donation not found", 404);
-    }
-
-    return sendResponse(res, 200, "success", "Donation updated successfully", {});
+    return sendResponse(res, 200, 'success', 'Donation updated successfully', result);
   }
 
   async delete(req, res, next) {
-    // TODO: add service logic
+    await donationService.deleteDonation(req.params.id, req.userId, req.userRole);
 
-    if (!true) {
-      throw new ApiError("Donation not found", 404);
-    }
-
-    return sendResponse(res, 200, "success", "Donation deleted successfully");
+    return sendResponse(res, 200, 'success', 'Donation deleted successfully', null);
   }
 }
 
