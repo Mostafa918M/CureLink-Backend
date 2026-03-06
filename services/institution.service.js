@@ -1,7 +1,7 @@
 const Institution = require("../models/institution.model");
 const institutionDocs=require("../models/ins-documents.model")
 const ApiError = require("../utils/apiError");
-const { uploadImage, deleteImage } = require("./imageStorage.service");
+const { uploadImage, deleteImage } = require("./imagestorage.service");
 class InstitutionService {
 
    async register(data,owner) {

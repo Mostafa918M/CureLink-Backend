@@ -7,7 +7,7 @@ const adminInstitutionRoutes = require('./routes/admin.institution.routes');
 const institutionRoutes = require('./routes/institution.routes');
 const authRoutes = require('./routes/auth.routes');
 const { swaggerUi, specs } = require('./config/swagger');
-const donationRoutes = require('./routes/Donation.routes');
+const donationRoutes = require('./routes/donation.routes');
 
 const app = express();
 
