@@ -7,6 +7,7 @@ const adminInstitutionRoutes = require('./routes/admin.institution.routes');
 const institutionRoutes = require('./routes/institution.routes');
 const authRoutes = require('./routes/auth.routes');
 const { swaggerUi, specs } = require('./config/swagger');
+const donationRoutes = require('./routes/Donation.routes');
 
 const app = express();
 
@@ -24,7 +25,7 @@ app.use('/health', (req, res) => {
 app.use('/api/v1/admin/institutions', adminInstitutionRoutes);
 app.use('/api/v1/institutions', institutionRoutes);
 app.use('/api/v1/auth', authRoutes);
-
+app.use('/api/v1/donations', donationRoutes);
 app.use(handleNotFound);
 app.use(globalError);
 
