@@ -30,7 +30,7 @@ class donationService {
       throw new ApiError('Sorry, we cannot accept this medicine because it has expired.', 400);
     }
 
-    const uploadPromises = files.map((file) => ImageStorageService.uploadImage(file.buffer));
+    const uploadPromises = files.map((file) => ImageStorageService.uploadImage(file.buffer,"Donations"));
     const uploadedImages = await Promise.all(uploadPromises);
 
     const imageObjects = uploadedImages.map((img) => ({
@@ -169,7 +169,7 @@ class donationService {
     }
 
     if (files && files.length > 0) {
-      const uploadPromises = files.map((file) => ImageStorageService.uploadImage(file.buffer));
+      const uploadPromises = files.map((file) => ImageStorageService.uploadImage(file.buffer,"Donations"));
       const uploadedImages = await Promise.all(uploadPromises);
 
       const newImageObjects = uploadedImages.map((img) => ({
