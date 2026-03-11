@@ -5,7 +5,7 @@ const REQUIRED_DOCUMENTS_BY_TYPE = {
   pharmacy:       ['commercial_register', 'tax_card', 'licenseNumber'],
   charity:        ['founding_decision', 'association_registration'],
   ngo:            ['founding_decision', 'association_registration'],
-  other:          ['commercial_register'], // minimum
+  other:          ['licenseNumber'], // minimum
 };
 
 module.exports={REQUIRED_DOCUMENTS_BY_TYPE}
