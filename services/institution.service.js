@@ -79,18 +79,18 @@ class InstitutionService {
 
    async updateProfile(userID,updateData) {
 
-    // if(userID.role!=="institution"){
-    //   throw new ApiError("Access denied - only institutions can view profiles denied", 403);
-    // }
-
-
     let existingInstitution=await Institution.findOne({user:userID})
     
     if(!existingInstitution){
       throw new ApiError("Institution not found", 404);
     }
 
-    const updates=Object.keys(updateData)     
+    const updates=Object.keys(updateData)  
+    updates.forEach(ele => {
+      if(updateData[ele]=== undefined || updateData[ele]===""){
+        delete updateData[ele]
+      }
+    });   
 
     const legalFields = ['licenseNumber'];
     const replacingLegalData = legalFields.some(field =>
