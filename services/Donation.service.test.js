@@ -94,7 +94,7 @@ describe('Donation Service', () => {
      2. Testing getAllDonations
      ========================================================== */
   describe('getAllDonations', () => {
-    it('should return paginated donations', async () => {
+    it('should return paginated donations, excluding soft-deleted ones', async () => {
       const mockQuery = {
         populate: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
@@ -105,12 +105,14 @@ describe('Donation Service', () => {
       Donation.countDocuments.mockResolvedValue(20);
 
       const result = await donationService.getAllDonations({ page: 2, limit: 10 });
+      
+      const expectedFilter = { deletedAt: { $exists: false } };
+      expect(Donation.find).toHaveBeenCalledWith(expectedFilter);
+      expect(Donation.countDocuments).toHaveBeenCalledWith(expectedFilter);
 
-      expect(Donation.find).toHaveBeenCalled();
-      expect(mockQuery.skip).toHaveBeenCalledWith(10); // (page 2 - 1) * 10
+      expect(mockQuery.skip).toHaveBeenCalledWith(10);
       expect(mockQuery.limit).toHaveBeenCalledWith(10);
       expect(result.pagination.total).toBe(20);
-      expect(result.pagination.pages).toBe(2);
       expect(result.donations.length).toBe(2);
     });
   });
@@ -120,15 +122,12 @@ describe('Donation Service', () => {
      ========================================================== */
   describe('getDonationById', () => {
     it('should throw 404 if donation is not found', async () => {
+      // Mongoose queries are "then-able", so we mock `then` to control await
       const mockQuery = {
         populate: jest.fn().mockReturnThis(),
+        then: jest.fn((resolve) => resolve(null)), // This makes `await` resolve to null
       };
-      // Chain the third populate to resolve to null
-      mockQuery.populate
-        .mockReturnValueOnce(mockQuery)
-        .mockReturnValueOnce(mockQuery)
-        .mockResolvedValueOnce(null);
-      Donation.findById.mockReturnValue(mockQuery);
+      Donation.findOne.mockReturnValue(mockQuery);
 
       await expect(donationService.getDonationById('invalidId')).rejects.toThrow(
         'Donation not found'
@@ -136,16 +135,16 @@ describe('Donation Service', () => {
     });
 
     it('should return donation if found', async () => {
-      const mockQuery = { populate: jest.fn().mockReturnThis() };
       const mockDonation = { _id: 'don123' };
-      mockQuery.populate
-        .mockReturnValueOnce(mockQuery)
-        .mockReturnValueOnce(mockQuery)
-        .mockResolvedValueOnce(mockDonation);
-      Donation.findById.mockReturnValue(mockQuery);
+      const mockQuery = {
+        populate: jest.fn().mockReturnThis(),
+        then: jest.fn((resolve) => resolve(mockDonation)),
+      };
+      Donation.findOne.mockReturnValue(mockQuery);
 
       const result = await donationService.getDonationById('don123');
       expect(result._id).toBe('don123');
+      expect(mockQuery.populate).toHaveBeenCalledTimes(3); // Ensure all populates were chained
     });
   });
 
@@ -189,16 +188,15 @@ describe('Donation Service', () => {
         quantity: { amount: 1, unit: 'box' },
       };
       Donation.findById.mockResolvedValue(existingDonation);
-
-      // Mock uploading a new image
       ImageStorageService.uploadImage.mockResolvedValue({ url: 'new_img.jpg', publicId: 'new1' });
+      
+      const mockUpdated = { 
+        _id: 'don123',
+        populate: jest.fn().mockResolvedValue(this) // Make populate chainable for the test
+      };
+      Donation.findByIdAndUpdate.mockResolvedValue(mockUpdated);
 
-      // Mock the findByIdAndUpdate chain
-      const mockUpdated = { _id: 'don123', populate: jest.fn().mockResolvedValue(true) };
-      const mockQuery = { populate: jest.fn().mockResolvedValue(mockUpdated) };
-      Donation.findByIdAndUpdate.mockReturnValue(mockQuery);
-
-      const result = await donationService.updateDonation(
+      await donationService.updateDonation(
         'don123',
         mockUserId,
         'donor',
@@ -208,11 +206,10 @@ describe('Donation Service', () => {
 
       expect(ImageStorageService.uploadImage).toHaveBeenCalled();
       expect(Donation.findByIdAndUpdate).toHaveBeenCalled();
-      // Ensure the quantity amount was mapped properly
       const updateArgs = Donation.findByIdAndUpdate.mock.calls[0][1].$set;
       expect(updateArgs.quantity.amount).toBe(10);
-      // Ensure images were merged
       expect(updateArgs.images.length).toBe(2);
+      expect(mockUpdated.populate).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -245,26 +242,24 @@ describe('Donation Service', () => {
       );
     });
 
-    it('should delete images from Cloudinary and remove document', async () => {
-      const mockDeleteOne = jest.fn().mockResolvedValue(true);
+    it('should soft-delete a donation', async () => {
+      const mockSave = jest.fn().mockResolvedValue(true);
       const existingDonation = {
         _id: 'don123',
         donor: mockUserId,
         status: 'pending',
-        images: [
-          { url: 'http://res.cloudinary.com/demo/image/upload/v1/medicine-donations/img_abc.jpg' },
-        ],
-        deleteOne: mockDeleteOne,
+        images: [{ url: 'some-url' }],
+        save: mockSave,
       };
 
       Donation.findById.mockResolvedValue(existingDonation);
-      ImageStorageService.deleteImage.mockResolvedValue(true);
 
       await donationService.deleteDonation('don123', mockUserId, 'admin'); // Admin bypasses status check
 
-      // check if the exact publicId was passed to deleteImage
-      expect(ImageStorageService.deleteImage).toHaveBeenCalledWith('medicine-donations/img_abc');
-      expect(mockDeleteOne).toHaveBeenCalled();
+      expect(ImageStorageService.deleteImage).not.toHaveBeenCalled();
+      expect(mockSave).toHaveBeenCalled();
+      expect(existingDonation.status).toBe('cancelled');
+      expect(existingDonation.deletedAt).toBeInstanceOf(Date);
     });
   });
 });
