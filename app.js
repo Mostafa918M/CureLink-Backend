@@ -2,9 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const { globalError, handleNotFound } = require('./middlewares/globalErrorHandler');
-//import routes here
+
+// Routes
 const requestRoutes = require('./routes/request.routes');
-const nameRoutes = require('./routes/name.routes');
 const authRoutes = require('./routes/auth.routes');
 const { swaggerUi, specs } = require('./config/swagger');
 const donationRoutes = require('./routes/Donation.routes');
@@ -21,9 +21,7 @@ app.use('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
-// TODO: Add your routes here
-app.use('/api/requests', requestRoutes);
-app.use('/api/names', nameRoutes);
+app.use('/api/v1/requests', requestRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/donations', donationRoutes);
 app.use(handleNotFound);
