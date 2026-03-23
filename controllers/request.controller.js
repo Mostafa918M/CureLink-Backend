@@ -1,57 +1,42 @@
-const asyncErrorHandler = require("../utils/asyncErrorHandler");
-const ApiError = require("../utils/apiError");
-const sendResponse = require("../utils/sendResponse");
-const RequestService = require("../services/request.service");
-
+const RequestService = require('../services/request.service');
+const sendResponse = require('../utils/sendResponse');
+const asyncErrorHandler = require('../utils/asyncErrorHandler');
 
 class RequestController {
-  async getAll(req, res) {
-    const undefined = await RequestService.getAll(req.query);
-    return sendResponse(res, 200, "success", "Requests fetched successfully", undefined);
-  }
+  create = asyncErrorHandler(async (req, res) => {
+    const request = await RequestService.createRequest(req.userId, req.body);
+    sendResponse(res, 201, 'success', 'Request created', request);
+  });
 
-  async getOne(req, res) {
-    const request = await RequestService.getById(req.params.id);
+  getAll = asyncErrorHandler(async (req, res) => {
+    const result = await RequestService.getAllRequests(req.userId, req.userRole, req.query);
+    sendResponse(res, 200, 'success', 'Requests fetched', result);
+  });
 
-    if (!request) {
-      throw new ApiError("Request not found", 404);
-    }
+  getOne = asyncErrorHandler(async (req, res) => {
+    const request = await RequestService.getRequestById(req.params.id, req.userId, req.userRole);
+    sendResponse(res, 200, 'success', 'Request fetched', request);
+  });
 
-    return sendResponse(res, 200, "success", "Request fetched successfully", request);
-  }
+  update = asyncErrorHandler(async (req, res) => {
+    const request = await RequestService.updateRequest(req.params.id, req.userId, req.body);
+    sendResponse(res, 200, 'success', 'Request updated', request);
+  });
 
-  async create(req, res) {
-    const request = await RequestService.create(req.body);
-    return sendResponse(res, 201, "success", "Request created successfully", request);
-  }
+  delete = asyncErrorHandler(async (req, res) => {
+    await RequestService.deleteRequest(req.params.id, req.userId);
+    sendResponse(res, 200, 'success', 'Request cancelled');
+  });
 
-  async update(req, res) {
-    const request = await RequestService.update(req.params.id, req.body);
+  getMatches = asyncErrorHandler(async (req, res) => {
+    const result = await RequestService.findMatches(req.params.id, req.query);
+    sendResponse(res, 200, 'success', 'Matches found', result);
+  });
 
-    if (!request) {
-      throw new ApiError("Request not found", 404);
-    }
-
-    return sendResponse(res, 200, "success", "Request updated successfully", request);
-  }
-
-  async delete(req, res) {
-    const result = await RequestService.delete(req.params.id);
-
-    if (!result) {
-      throw new ApiError("Request not found", 404);
-    }
-
-    return sendResponse(res, 200, "success", "Request deleted successfully");
-  }
+  getStats = asyncErrorHandler(async (req, res) => {
+    const stats = await RequestService.getStatistics(req.userId, req.userRole);
+    sendResponse(res, 200, 'success', 'Statistics fetched', stats);
+  });
 }
 
-const controller = new RequestController();
-
-module.exports = {
-  getAll: asyncErrorHandler(controller.getAll.bind(controller)),
-  getOne: asyncErrorHandler(controller.getOne.bind(controller)),
-  create: asyncErrorHandler(controller.create.bind(controller)),
-  update: asyncErrorHandler(controller.update.bind(controller)),
-  delete: asyncErrorHandler(controller.delete.bind(controller)),
-};
+module.exports = new RequestController();
