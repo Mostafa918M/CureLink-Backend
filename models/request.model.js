@@ -45,11 +45,24 @@ const requestSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
-    }
+    },
+    matchedDonations: [
+      {
+        donation: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Donation',
+        },
+        matchedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
 
 requestSchema.index({ medicineName: 'text' });
+requestSchema.index({ institution: 1, status: 1 });
 
 module.exports = mongoose.model('Request', requestSchema);
