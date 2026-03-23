@@ -78,7 +78,10 @@ class RequestService {
   async getRequestById(id, userId, userRole) {
     const request = await Request.findById(id)
       .populate('institution', 'firstName lastName email phone')
-      .populate('matchedDonations.donation');
+      .populate({
+        path: 'matchedDonations.donation',
+        match: { deletedAt: { $exists: false } },
+      });
 
     if (!request) throw new ApiError('Request not found', 404);
 
@@ -87,6 +90,13 @@ class RequestService {
       request.institution._id.toString() !== userId.toString()
     ) {
       throw new ApiError('Not authorized to view this request', 403);
+    }
+
+    // Filter out any matched donations that were soft-deleted (and thus are null after populate)
+    if (request.matchedDonations && request.matchedDonations.length > 0) {
+      request.matchedDonations = request.matchedDonations.filter(
+        (match) => match.donation
+      );
     }
 
     return request;
@@ -170,6 +180,7 @@ class RequestService {
     const donationFilter = {
       status: 'available',
       medicine: { $in: medicineIds },
+      deletedAt: { $exists: false },
     };
 
     // Match unit if specified

@@ -124,14 +124,16 @@ class donationService {
     const limit = parseInt(query.limit, 10) || 10;
     const skip = (page - 1) * limit;
 
-    const donations = await Donation.find()
+    const filter = { deletedAt: { $exists: false } };
+
+    const donations = await Donation.find(filter)
       .populate('donor', 'firstName lastName email phone')
       .populate('medicine', 'name strength dosageForm category')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
 
-    const total = await Donation.countDocuments();
+    const total = await Donation.countDocuments(filter);
 
     return {
       donations,
@@ -145,7 +147,7 @@ class donationService {
   }
 
   async getDonationById(id) {
-    const donation = await Donation.findById(id)
+    const donation = await Donation.findOne({ _id: id, deletedAt: { $exists: false } })
       .populate('donor', 'firstName lastName email phone')
       .populate('medicine', 'name strength dosageForm category')
       .populate('matchedInstitution', 'firstName lastName email phone');
@@ -219,17 +221,12 @@ class donationService {
       throw new ApiError('You can only delete pending or rejected donations', 400);
     }
 
-    if (donation.images && donation.images.length > 0) {
-      const deletePromises = donation.images.map((img) => {
-        const urlParts = img.url.split('/');
-        const filename = urlParts[urlParts.length - 1];
-        const publicId = `medicine-donations/${filename.split('.')[0]}`;
-        return ImageStorageService.deleteImage(publicId);
-      });
-      await Promise.allSettled(deletePromises);
-    }
+    donation.status = 'cancelled';
+    donation.deletedAt = new Date();
+    
+    await donation.save();
 
-    await donation.deleteOne();
+    return donation;
   }
 }
 

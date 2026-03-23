@@ -124,6 +124,11 @@ const donationSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+
+    deletedAt: {
+      type: Date,
+      index: true,
+    },
   },
   {
     timestamps: true,
