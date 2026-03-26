@@ -4,7 +4,7 @@ const adminInstitutionController = require('../controllers/admin.institution.con
 const { authenticate, authorize } = require('../middlewares/auth');
 
 
-router.use(authenticate, authorize("superadmin"));
+router.use(authenticate, authorize("superadmin" ,"admin"));
 
 router.get('/', adminInstitutionController.getAllInstitutions);
 router.get('/pending', adminInstitutionController.getPendingInstitutions);
