@@ -2,6 +2,7 @@ const Institution = require("../models/institution.model");
 const institutionDocs=require("../models/ins-documents.model")
 const ApiError = require("../utils/apiError");
 const { uploadImage, deleteImage } = require("./imagestorage.service");
+const { REQUIRED_DOCUMENTS_BY_TYPE } = require("../config/documentRules");
 class InstitutionService {
 
    async register(data,owner) {
@@ -79,18 +80,18 @@ class InstitutionService {
 
    async updateProfile(userID,updateData) {
 
-    // if(userID.role!=="institution"){
-    //   throw new ApiError("Access denied - only institutions can view profiles denied", 403);
-    // }
-
-
     let existingInstitution=await Institution.findOne({user:userID})
     
     if(!existingInstitution){
       throw new ApiError("Institution not found", 404);
     }
 
-    const updates=Object.keys(updateData)     
+    const updates=Object.keys(updateData)  
+    updates.forEach(ele => {
+      if(updateData[ele]=== undefined || updateData[ele]===""){
+        delete updateData[ele]
+      }
+    });   
 
     const legalFields = ['licenseNumber'];
     const replacingLegalData = legalFields.some(field =>
@@ -218,11 +219,21 @@ class InstitutionService {
 
    const institutionID=existingInstitution._id
    const saved_doc=[]
+//    files = {
+//      tax_card:[file1],
+//      commercial_register:[file2]
+//     }
 
    for(const[fieldName,filesArray]of Object.entries(files)){
     if(!institutionDocs.schema.path("type").enumValues.includes(fieldName)){
-       continue
+      throw new ApiError(`Invalid document type '${fieldName}'`,400)
     }
+
+    // the institution can upload one or multiple files of types other & prevent institutions from uploading files that are not allowed for them
+     if(fieldName!=="other" && ! REQUIRED_DOCUMENTS_BY_TYPE[existingInstitution.type].includes(fieldName)){
+        throw new ApiError(`Document type '${fieldName}' is not allowed for this institution`,400)
+      }
+      
     for(const file of filesArray){
       if(file!=="other"){
         const existDoc=await institutionDocs.findOne({
