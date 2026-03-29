@@ -9,6 +9,7 @@ const institutionRoutes = require('./routes/institution.routes');
 const authRoutes = require('./routes/auth.routes');
 const { swaggerUi, specs } = require('./config/swagger');
 const donationRoutes = require('./routes/donation.routes');
+const adminDonationRoutes = require('./routes/admin.donation.routes');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/health', (req, res) => {
 // TODO: Add your routes here
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/admin/institutions', adminInstitutionRoutes);
+app.use('/api/v1/admin/donations', adminDonationRoutes);
 app.use('/api/v1/institutions', institutionRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/donations', donationRoutes);

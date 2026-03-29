@@ -122,3 +122,75 @@
  *       500:
  *         description: Server error
  */
+
+/**
+ * @swagger
+ * /api/v1/donations/{id}:
+ *   patch:
+ *     summary: Update a donation by ID
+ *     description: Update donation details. Upload images if required.
+ *     tags: [Donations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The donation ID
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *               quantityAmount:
+ *                 type: integer
+ *               quantityUnit:
+ *                 type: string
+ *                 enum: [box, bottle, strip, unit]
+ *               conditionNotes:
+ *                 type: string
+ *               priority:
+ *                 type: string
+ *                 enum: [low, medium, high]
+ *     responses:
+ *       200:
+ *         description: Donation updated successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Donation not found
+ *       500:
+ *         description: Server error
+ *   delete:
+ *     summary: Delete a donation by ID
+ *     description: Remove a specific donation.
+ *     tags: [Donations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The donation ID
+ *     responses:
+ *       200:
+ *         description: Donation deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Donation not found
+ *       500:
+ *         description: Server error
+ */

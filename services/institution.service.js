@@ -51,7 +51,8 @@ class InstitutionService {
         description: institution.description,
         addresses: institution.addresses,
         logo: institution.logo,
-        owner:institution.user
+        owner:institution.user,
+        status : institution.verificationStatus
         // owner:populated.user
       }
     }
