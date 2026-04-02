@@ -3,6 +3,8 @@ const institutionDocs=require("../models/ins-documents.model")
 const ApiError = require("../utils/apiError");
 const { uploadImage, deleteImage } = require("./imagestorage.service");
 const { REQUIRED_DOCUMENTS_BY_TYPE } = require("../config/documentRules");
+const notificationService = require("./notification.service");
+const user = require("../models/user.model");
 class InstitutionService {
 
    async register(data,owner) {
@@ -242,7 +244,7 @@ class InstitutionService {
         })
 
         if(existDoc){
-          await institutionDocs.deleteOne(existDoc)
+          await institutionDocs.deleteOne({_id:existDoc._})
         }
       }
         const uploaded=await uploadImage(file.buffer,"institutions/documents")
@@ -270,6 +272,25 @@ class InstitutionService {
         existingInstitution.verificationStatus = "under_review"
         await existingInstitution.save()
   }
+
+
+  //send notifcation from system to admins for review new pending institution
+    const admins=await user.find({role:"admin",isActive:true}).select("_id")
+    await Promise.all(
+      admins.map(admin=>{
+        return notificationService.createNotification({
+          userId:admin._id,
+          type:"new_institution_pending",
+          data:{institutionName:existingInstitution.name}
+        })
+      })
+    )
+
+    //send notifcation from system to institution after registration & document upload
+    await notificationService.createNotification({
+      userId:existingInstitution._id,
+      type:"institution_under_review",
+      })
 
   return{
     AllDocuments:saved_doc,

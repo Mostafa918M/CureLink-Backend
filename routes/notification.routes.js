@@ -2,6 +2,7 @@ const express = require('express');
 const notificationController = require('../controllers/notification.controller');
 const { authenticate, authorize } = require('../middlewares/auth');
 const notificationValidator = require('../validators/notification.validator');
+const notificationService = require('../services/notification.service');
 const router = express.Router();
 
 
@@ -20,7 +21,7 @@ router.delete('/:userID', authenticate, authorize("superadmin","admin"),notifica
 
 // router.get('/', authenticate, authorize("superadmin","admin"))
 // router.patch('/:id',authenticate, authorize("superadmin","admin"))
-// router.patch( '/:id',authenticate, authorize("superadmin","admin"))
+// router.patch( '/:id',authenticate, authorize("superadmin","admin"),notificationController.updateTemplate)  //take id for template
 
 //get all deleted notification 
 //restore one notificaion

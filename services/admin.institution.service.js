@@ -1,5 +1,6 @@
 const Institution = require("../models/institution.model");
 const ApiError = require("../utils/apiError");
+const notificationService = require("./notification.service");
 
 class AdminInstitutionService {
     async getAllInstitutions({ page, limit }) {
@@ -69,6 +70,16 @@ class AdminInstitutionService {
             throw new ApiError("Institution not found", 404);
         }
 
+        //send notification from admin to institution if institution approved
+        try{
+            await notificationService.createNotification({
+                userId:institution._id,
+                type:"institution_approved"
+            })
+        }catch(err){
+            console.error("Failed to send notification:", err);
+        }
+
         return institution;
     }
 
@@ -81,6 +92,17 @@ class AdminInstitutionService {
 
         if (!institution) {
             throw new ApiError("Institution not found", 404);
+        }
+
+        //send notification from admin to institution if institution rejected
+         try{
+            await notificationService.createNotification({
+                userId:institution._id,
+                type:"institution_rejected",
+                data:{rejectionReason:institution.rejectionReason}
+            })
+        }catch(err){
+            console.error("Failed to send notification:", err);
         }
 
         return institution;

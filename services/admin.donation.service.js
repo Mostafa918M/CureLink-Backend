@@ -1,6 +1,7 @@
 const Donation = require('../models/donation.model');
 const ApiError = require('../utils/apiError');
 const mongoose = require('mongoose');
+const notificationService = require('./notification.service');
 
 class AdminDonationService {
   /**
@@ -73,7 +74,10 @@ class AdminDonationService {
    * Update donation status and record history
    */
   async updateStatus(id, status, notes, adminId) {
-    const donation = await Donation.findById(id);
+    const donation = await Donation.findById(id).populate([
+      { path: 'donor', select: 'firstName lastName email phone' },
+      { path: 'medicine', select: 'name strength dosageForm category' }
+    ]);;
     if (!donation) {
       throw new ApiError('Donation not found', 404);
     }
@@ -91,11 +95,30 @@ class AdminDonationService {
     });
 
     await donation.save();
-    
-    return donation.populate([
-      { path: 'donor', select: 'firstName lastName email phone' },
-      { path: 'medicine', select: 'name strength dosageForm category' }
-    ]);
+
+    //send notification from admin to donor if deonation approved or rejected
+    const notificationStatus={
+      available:"donation_approved",
+      rejected:"donation_rejected"
+    }
+
+    if(notificationStatus[status]){
+      let data={medicineName:donation.medicine.name}
+      if(status==="rejected"){
+        data.rejectionReason=notes
+      }
+      try{
+        await notificationService.createNotification({
+        userId:donation.donor._id,
+        type:notificationStatus[status],
+        data
+      })
+    }catch(err){
+      console.error("Failed to send notification:", err);
+    }
+  }
+
+    return donation
   }
 
   /**

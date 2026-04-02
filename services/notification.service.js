@@ -21,7 +21,7 @@ class NotificationService {
       const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       message=message.replace(
         new RegExp(`{{${escapedKey}}}`,'g'),
-        data.key)
+        data[key])
     })
 
     //save notification in DB 
@@ -66,7 +66,7 @@ class NotificationService {
       throw new ApiError('notification not found',404);
     }
 
-    notification.createdAtFormatted = dayjs(Notification.createdAt).fromNow();
+    notification.createdAtFormatted = dayjs(notification.createdAt).fromNow();
     return notification
   }
 

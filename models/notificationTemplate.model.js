@@ -16,7 +16,7 @@ const notificationTemplateSchema=new mongoose.Schema({
 }, { timestamps: true })
 
 
-notificationTemplateSchema.index({type:1})
+// notificationTemplateSchema.index({type:1})
 
 module.exports=mongoose.model("notificationTemplate",notificationTemplateSchema)
 
