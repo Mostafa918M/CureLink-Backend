@@ -29,11 +29,13 @@ const notificationSchema=new mongoose.Schema(
              default: false
         },
         deletedAt: {
-             type: Date 
+             type: Date,
+             default:null
         },                      
         deletedBy: { 
             type: mongoose.Schema.Types.ObjectId, 
-            ref: "User" 
+            ref: "User",
+            default:null
         } 
 
 },{ timestamps: true })

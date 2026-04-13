@@ -47,10 +47,12 @@ class NotificationService {
     .limit(perPage)
     .lean()
 
-    notifications.map(single_notification=>{
-      single_notification.createdAtFormatted=dayjs(single_notification.createdAt).fromNow();
-    })
-    return notifications
+    const formattedNotifications=notifications.map(single_notification=>({
+      ...single_notification,
+      createdAtFormatted:dayjs(single_notification.createdAt).fromNow()
+    }))
+
+    return formattedNotifications
   }
 
 
@@ -152,9 +154,63 @@ class NotificationService {
     }
   }
 
+  async getAllDeletedNotification(adminIdId,{page,limit}) {
+    const currentPage=parseInt(page)|| 1
+    const perPage=Math.min(parseInt(limit)|| 10, 50)
+
+    const filter = {
+    isDeleted: true,
+    deletedBy: adminIdId
+    }
+
+    const [notifications, deletedCount] = await Promise.all([
+      Notification.find(filter)
+        .select("title type message createdAt deletedAt")
+        .sort({ deletedAt: -1 })
+        .skip((currentPage - 1) * perPage)
+        .limit(perPage)
+        .lean(),
+
+    Notification.countDocuments(filter)
+  ])
+
+    return {
+      notifications,
+      deletedCount,
+      message:deletedCount >0 ? 
+      "deleted Notifications fetched successfully"
+      : "No deleted notifications"    
+     }
+    }
+
+    async restoreNotification(notificationId,adminId,adminRole) {
+      const filter={
+        _id:notificationId,
+        isDeleted:true,
+      }
+
+      if(adminRole==="admin"){
+        filter.deletedBy=adminId
+      }
 
 
+     const notification=await Notification.findOneAndUpdate(
+      filter,
+      {
+      isDeleted:false,
+      deletedAt: null,
+      deletedBy: null
+      },
+      { new: true })
+      .select("title type message createdAt ")
+      .lean()
 
+      if(! notification){
+      throw new ApiError("Notification not found or not deleted",404);
+     }
+
+    return notification
+  }
 
 }
 

@@ -27,7 +27,7 @@ const InstitutionSchema = new mongoose.Schema({
         required: [true, " licenseNumber is required"],
         unique: true,
         trim: true,
-        uppercase: true, // ← ده اللي هيحول small → capital تلقائيًا
+        uppercase: true, 
         minlength: [5, "licenseNumber can't be less than 5 characters"],
         maxlength: [30, " licenseNumber can't be more than 30 characters "],
         match: [

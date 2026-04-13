@@ -96,6 +96,42 @@ class NotificationController {
       deletedNotifications.deletedCount);
   }
 
+
+  async getAllDeleted(req,res){
+    const filters={
+      limit:req.query.limit,
+      page: req.query.page
+    }
+
+    const deletedNotifications=await notificationService.getAllDeletedNotification(req.userId,filters)
+
+    return sendResponse(
+      res, 
+      200, 
+      "success", 
+      deletedNotifications.message,
+      deletedNotifications.deletedCount,
+      deletedNotifications.notifications
+    );
+  }
+
+
+  async restoreOneNotification(req,res){
+    const notificationId=req.params.id
+    if (!notificationId) {
+      throw new ApiError("Notification ID is required", 400)
+    }
+
+    const restoredNotification=await notificationService.restoreNotification(notificationId,req.userId,req.userRole)
+
+    return sendResponse(
+      res, 
+      200, 
+      "success", 
+      "Notification restored successfully",
+      restoredNotification);
+  }
+
 }
 
 const controller = new NotificationController();
@@ -108,4 +144,6 @@ module.exports = {
   unreadCountNotification:asyncErrorHandler(controller.unreadCountNotification.bind(controller)),
   deleteOne: asyncErrorHandler(controller.deleteOne.bind(controller)),
   deleteAll: asyncErrorHandler(controller.deleteAll.bind(controller)),
+  getAllDeleted: asyncErrorHandler(controller.getAllDeleted.bind(controller)),
+  restoreOneNotification: asyncErrorHandler(controller.restoreOneNotification.bind(controller)),
 };

@@ -2,7 +2,6 @@ const express = require('express');
 const notificationController = require('../controllers/notification.controller');
 const { authenticate, authorize } = require('../middlewares/auth');
 const notificationValidator = require('../validators/notification.validator');
-const notificationService = require('../services/notification.service');
 const router = express.Router();
 
 
@@ -19,13 +18,9 @@ router.get('/unread-count', authenticate ,notificationController.unreadCountNoti
 router.delete('/:id', authenticate, authorize("superadmin","admin"),notificationValidator.validateObjectId,notificationController.deleteOne);     //Delete notification
 router.delete('/:userID', authenticate, authorize("superadmin","admin"),notificationValidator.validateObjectId,notificationController.deleteAll);       //Delete all notifications for each user
 
-// router.get('/', authenticate, authorize("superadmin","admin"))
-// router.patch('/:id',authenticate, authorize("superadmin","admin"))
-// router.patch( '/:id',authenticate, authorize("superadmin","admin"),notificationController.updateTemplate)  //take id for template
-
-//get all deleted notification 
-//restore one notificaion
-//update notification template for admin & superadmin
+router.get('/deleted', authenticate, authorize("superadmin","admin"),notificationController.getAllDeleted)  ///get all admin's deleted notification 
+router.patch('/restore/:id',authenticate, authorize("superadmin","admin"),notificationController.restoreOneNotification)   
+// Restore a single notification => Admin can restore only notifications they deleted && Superadmin can restore any deleted notification
 
 
 module.exports = router;
