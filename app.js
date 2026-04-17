@@ -4,10 +4,11 @@ const cookieParser = require('cookie-parser');
 const { globalError, handleNotFound } = require('./middlewares/globalErrorHandler');
 
 // Routes
-const requestRoutes = require('./routes/request.routes');
-const authRoutes = require('./routes/auth.routes');
-const { swaggerUi, specs } = require('./config/swagger');
+const requestRoutes  = require('./routes/request.routes');
+const authRoutes     = require('./routes/auth.routes');
 const donationRoutes = require('./routes/Donation.routes');
+const analyticsRoutes = require('./routes/analytics.routes');
+const { swaggerUi, specs } = require('./config/swagger');
 
 const app = express();
 
@@ -21,9 +22,10 @@ app.use('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
-app.use('/api/v1/requests', requestRoutes);
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/donations', donationRoutes);
+app.use('/api/v1/requests',   requestRoutes);
+app.use('/api/v1/auth',       authRoutes);
+app.use('/api/v1/donations',  donationRoutes);
+app.use('/api/v1/analytics',  analyticsRoutes);
 app.use(handleNotFound);
 app.use(globalError);
 
