@@ -11,9 +11,7 @@ const router = express.Router();
 router.use(authenticate);
 router.use(authorize('admin', 'superadmin'));
 
-/* ── Donation analytics ─────────────────────────────────────
- * @swagger-path defined in docs/swagger/analytics.doc.js
- * ─────────────────────────────────────────────────────────── */
+
 router.get('/donations',            analyticsController.getDonations);
 router.get('/donations/trends',     analyticsController.getDonationTrends);
 router.get('/donations/categories', analyticsController.getDonationCategories);

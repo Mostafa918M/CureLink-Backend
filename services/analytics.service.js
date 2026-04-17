@@ -6,11 +6,7 @@ const Request  = require('../models/request.model');
 const User     = require('../models/user.model');
 const Medicine = require('../models/medicine.model');
 
-/* ─────────────────────────── helpers ─────────────────────────── */
-/**
- * Build a $dateToString format string from a human-readable period.
- * @param {'daily'|'weekly'|'monthly'|'yearly'} period
- */
+
 function dateGroupFormat(period) {
   switch (period) {
     case 'daily':   return '%Y-%m-%d';
