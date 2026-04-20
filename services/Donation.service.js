@@ -1,9 +1,11 @@
 // services/Donation.service.js
 const AiService = require('./Ai.service');
-const ImageStorageService = require('./imageStorage.service');
+const ImageStorageService = require('./imagestorage.service');
 const Donation = require('../models/donation.model');
 const Medicine = require('../models/medicine.model');
 const ApiError = require('../utils/apiError');
+const notificationService = require('./notification.service');
+const user=require("../models/user.model")
 
 class donationService {
   async createDonation(userId, files, bodyData = {}) {
@@ -30,7 +32,7 @@ class donationService {
       throw new ApiError('Sorry, we cannot accept this medicine because it has expired.', 400);
     }
 
-    const uploadPromises = files.map((file) => ImageStorageService.uploadImage(file.buffer));
+    const uploadPromises = files.map((file) => ImageStorageService.uploadImage(file.buffer,"Donations"));
     const uploadedImages = await Promise.all(uploadPromises);
 
     const imageObjects = uploadedImages.map((img) => ({
@@ -108,6 +110,18 @@ class donationService {
         await donation.populate('matchedInstitution', 'firstName lastName email phone');
       }
 
+      //send notifcation from system to admins for review new pending donation 
+      const admins=await user.find({role:"admin",isActive:true}).select("_id")
+      await Promise.all(
+        admins.map(admin=>{
+          return notificationService.createNotification({
+            userId:admin._id,
+            type:"new_donation_submitted",
+            data:{medicineName:donation.medicine.name}
+        })
+        })
+      )
+
       return donation;
     } catch (error) {
       if (uploadedImages && uploadedImages.length > 0) {
@@ -169,7 +183,7 @@ class donationService {
     }
 
     if (files && files.length > 0) {
-      const uploadPromises = files.map((file) => ImageStorageService.uploadImage(file.buffer));
+      const uploadPromises = files.map((file) => ImageStorageService.uploadImage(file.buffer,"Donations"));
       const uploadedImages = await Promise.all(uploadPromises);
 
       const newImageObjects = uploadedImages.map((img) => ({
