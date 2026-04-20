@@ -243,4 +243,350 @@
  *                   type: number
  *                 pages:
  *                   type: number
+ *
+ *     Pagination:
+ *       type: object
+ *       properties:
+ *         total:
+ *           type: integer
+ *           description: Total number of documents matching the filter
+ *         page:
+ *           type: integer
+ *           description: Current page number
+ *         limit:
+ *           type: integer
+ *           description: Number of results per page
+ *         pages:
+ *           type: integer
+ *           description: Total number of pages
+ *
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: fail
+ *         message:
+ *           type: string
+ *           example: Request not found
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *
+ *     MatchedDonation:
+ *       type: object
+ *       description: A donation that has been linked to this request
+ *       properties:
+ *         donation:
+ *           oneOf:
+ *             - type: string
+ *               description: Donation ObjectId (not populated)
+ *             - $ref: '#/components/schemas/Donation'
+ *         matchedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Timestamp when the match was recorded
+ *
+ *     Request:
+ *       type: object
+ *       description: A medication request created by an institution
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: MongoDB ObjectId
+ *           example: 665abc123def4567890abcde
+ *         institution:
+ *           oneOf:
+ *             - type: string
+ *               description: Institution User ObjectId
+ *             - $ref: '#/components/schemas/User'
+ *         medicineName:
+ *           type: string
+ *           description: Name of the required medicine
+ *           example: Panadol
+ *         strength:
+ *           type: string
+ *           description: Dosage strength (e.g. 500mg)
+ *           example: 500mg
+ *         dosageForm:
+ *           type: string
+ *           enum: [tablet, capsule, syrup, injection, cream, drops, other]
+ *           example: tablet
+ *         requiredQuantity:
+ *           type: object
+ *           properties:
+ *             amount:
+ *               type: integer
+ *               minimum: 1
+ *               example: 10
+ *             unit:
+ *               type: string
+ *               enum: [box, bottle, strip, unit]
+ *               example: box
+ *         fulfilledQuantity:
+ *           type: integer
+ *           description: How many units have been fulfilled so far (system-managed)
+ *           default: 0
+ *           example: 3
+ *         priority:
+ *           type: string
+ *           enum: [low, medium, high, urgent]
+ *           default: medium
+ *           example: high
+ *         status:
+ *           type: string
+ *           enum: [open, partially_fulfilled, fulfilled, cancelled, expired]
+ *           default: open
+ *           example: open
+ *         notes:
+ *           type: string
+ *           description: Optional free-text notes about the request
+ *           example: Needed for the pediatric ward
+ *         expiresAt:
+ *           type: string
+ *           format: date
+ *           description: Date after which the request is considered expired
+ *           example: "2027-06-01"
+ *         matchedDonations:
+ *           type: array
+ *           description: Donations that have been linked to this request
+ *           items:
+ *             $ref: '#/components/schemas/MatchedDonation'
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *
+ *     CreateRequestInput:
+ *       type: object
+ *       required:
+ *         - medicineName
+ *         - requiredQuantity
+ *         - expiresAt
+ *       properties:
+ *         medicineName:
+ *           type: string
+ *           minLength: 2
+ *           description: Name of the medicine being requested
+ *           example: Panadol
+ *         strength:
+ *           type: string
+ *           description: Dosage strength (optional)
+ *           example: 500mg
+ *         dosageForm:
+ *           type: string
+ *           enum: [tablet, capsule, syrup, injection, cream, drops, other]
+ *           example: tablet
+ *         requiredQuantity:
+ *           type: object
+ *           required: [amount, unit]
+ *           properties:
+ *             amount:
+ *               type: integer
+ *               minimum: 1
+ *               example: 10
+ *             unit:
+ *               type: string
+ *               enum: [box, bottle, strip, unit]
+ *               example: box
+ *         priority:
+ *           type: string
+ *           enum: [low, medium, high, urgent]
+ *           default: medium
+ *           example: high
+ *         expiresAt:
+ *           type: string
+ *           format: date
+ *           description: Must be a future date (ISO 8601)
+ *           example: "2027-06-01"
+ *         notes:
+ *           type: string
+ *           description: Optional notes about the request
+ *           example: Needed for the pediatric ward
+ *
+ *     UpdateRequestInput:
+ *       type: object
+ *       description: |
+ *         All fields are optional. Fields `institution`, `status`,
+ *         `fulfilledQuantity`, and `matchedDonations` are read-only and
+ *         will be stripped if provided.
+ *       properties:
+ *         medicineName:
+ *           type: string
+ *           minLength: 2
+ *           example: Panadol Extra
+ *         strength:
+ *           type: string
+ *           example: 1000mg
+ *         dosageForm:
+ *           type: string
+ *           enum: [tablet, capsule, syrup, injection, cream, drops, other]
+ *         requiredQuantity:
+ *           type: object
+ *           properties:
+ *             amount:
+ *               type: integer
+ *               minimum: 1
+ *               example: 20
+ *             unit:
+ *               type: string
+ *               enum: [box, bottle, strip, unit]
+ *               example: box
+ *         priority:
+ *           type: string
+ *           enum: [low, medium, high, urgent]
+ *           example: urgent
+ *         expiresAt:
+ *           type: string
+ *           format: date
+ *           description: Must be a future date
+ *           example: "2028-01-01"
+ *         notes:
+ *           type: string
+ *           example: Situation escalated, very urgent now
+ *
+ *     RequestResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *           example: Request created
+ *         data:
+ *           $ref: '#/components/schemas/Request'
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *
+ *     RequestsListResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *           example: Requests fetched
+ *         data:
+ *           type: object
+ *           properties:
+ *             requests:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Request'
+ *             pagination:
+ *               $ref: '#/components/schemas/Pagination'
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *
+ *     RequestStatisticsResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *           example: Statistics fetched
+ *         data:
+ *           type: object
+ *           properties:
+ *             summary:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                   example: 25
+ *                 open:
+ *                   type: integer
+ *                   example: 10
+ *                 fulfilled:
+ *                   type: integer
+ *                   example: 8
+ *                 partiallyFulfilled:
+ *                   type: integer
+ *                   example: 4
+ *                 cancelled:
+ *                   type: integer
+ *                   example: 3
+ *                 fulfilledRate:
+ *                   type: string
+ *                   description: Percentage of fully fulfilled requests
+ *                   example: "32%"
+ *             byStatus:
+ *               type: array
+ *               description: Count of requests grouped by status
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Status value
+ *                     example: open
+ *                   count:
+ *                     type: integer
+ *                     example: 10
+ *             byPriority:
+ *               type: array
+ *               description: Count of requests grouped by priority
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Priority value
+ *                     example: high
+ *                   count:
+ *                     type: integer
+ *                     example: 12
+ *
+ *     RequestMatchesResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *           example: Matches found
+ *         data:
+ *           type: object
+ *           properties:
+ *             request:
+ *               type: object
+ *               description: Summary of the originating request
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   example: 665abc123def4567890abcde
+ *                 medicineName:
+ *                   type: string
+ *                   example: Panadol
+ *                 requiredQuantity:
+ *                   type: object
+ *                   properties:
+ *                     amount:
+ *                       type: integer
+ *                       example: 10
+ *                     unit:
+ *                       type: string
+ *                       example: box
+ *                 fulfilledQuantity:
+ *                   type: integer
+ *                   example: 0
+ *             donations:
+ *               type: array
+ *               description: Available donations whose medicine matches the request
+ *               items:
+ *                 $ref: '#/components/schemas/Donation'
+ *             pagination:
+ *               $ref: '#/components/schemas/Pagination'
+ *         timestamp:
+ *           type: string
+ *           format: date-time
  */

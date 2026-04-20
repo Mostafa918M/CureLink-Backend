@@ -197,7 +197,7 @@ class donationService {
     delete updateData.donor;
     delete updateData.medicine;
     delete updateData.statusHistory;
-
+   
     if (updateData.quantityAmount || updateData.quantityUnit) {
       updateData.quantity = {
         amount: updateData.quantityAmount || donation.quantity.amount,
@@ -206,12 +206,17 @@ class donationService {
       delete updateData.quantityAmount;
       delete updateData.quantityUnit;
     }
-
+    if (updateData.matchedInstitution) {
+      if(donation.matchedInstitution?.toString() !== updateData.matchedInstitution.toString()) {
+        updateData.matchedAt = new Date();
+      }
+    }
     const updatedDonation = await Donation.findByIdAndUpdate(
       donationId,
       { $set: updateData },
       { new: true, runValidators: true }
-    ).populate('medicine', 'name strength dosageForm category');
+    ).populate('medicine', 'name strength dosageForm category')
+    .populate('matchedInstitution', 'firstName lastName email phone');
 
     return updatedDonation;
   }

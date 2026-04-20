@@ -2,7 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const { globalError, handleNotFound } = require('./middlewares/globalErrorHandler');
-//import routes here
+
+// Routes
+const requestRoutes = require('./routes/request.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const adminInstitutionRoutes = require('./routes/admin.institution.routes');
 const institutionRoutes = require('./routes/institution.routes');
@@ -23,7 +25,7 @@ app.use('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
-// TODO: Add your routes here
+app.use('/api/v1/requests', requestRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/admin/institutions', adminInstitutionRoutes);
 app.use('/api/v1/admin/donations', adminDonationRoutes);
