@@ -158,6 +158,37 @@ class donationService {
     };
   }
 
+  async getMyDonations(userId, query) {
+    const page = parseInt(query.page, 10) || 1;
+    const limit = parseInt(query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
+    const filter = { donor: userId };
+
+    if (query.status) {
+      filter.status = query.status;
+    }
+
+    const donations = await Donation.find(filter)
+      .populate('medicine', 'name strength dosageForm category')
+      .populate('matchedInstitution', 'firstName lastName email phone')
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await Donation.countDocuments(filter);
+
+    return {
+      donations,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    };
+  }
+
   async getDonationById(id) {
     const donation = await Donation.findById(id)
       .populate('donor', 'firstName lastName email phone')

@@ -194,3 +194,75 @@
  *       500:
  *         description: Server error
  */
+
+/**
+ * @swagger
+ * /api/v1/donations/my-donations:
+ *   get:
+ *     summary: Get the authenticated donor's own donations
+ *     description: >
+ *       Returns a paginated list of all donations submitted by the currently
+ *       authenticated donor. Supports optional filtering by donation status.
+ *     tags: [Donations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, approved, rejected, delivered, cancelled]
+ *         description: Filter donations by status
+ *     responses:
+ *       200:
+ *         description: Donor's donations fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Your donations fetched successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     donations:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Donation'
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         total:
+ *                           type: integer
+ *                           example: 5
+ *                         page:
+ *                           type: integer
+ *                           example: 1
+ *                         limit:
+ *                           type: integer
+ *                           example: 10
+ *                         pages:
+ *                           type: integer
+ *                           example: 1
+ *       401:
+ *         description: Unauthorized – missing or invalid token
+ *       500:
+ *         description: Server error
+ */
