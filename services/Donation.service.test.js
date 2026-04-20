@@ -1,14 +1,18 @@
-const donationService = require('./donation.service.');
+const donationService = require('./Donation.service');
 const AiService = require('./Ai.service');
 const ImageStorageService = require('./imagestorage.service');
 const Donation = require('../models/donation.model');
 const Medicine = require('../models/medicine.model');
 const ApiError = require('../utils/apiError');
+const notificationService = require('./notification.service');
+const User = require('../models/user.model');
 
 jest.mock('./Ai.service');
 jest.mock('./imagestorage.service');
 jest.mock('../models/donation.model');
 jest.mock('../models/medicine.model');
+jest.mock('./notification.service');
+jest.mock('../models/user.model');
 
 describe('Donation Service', () => {
   const mockUserId = 'user123';
@@ -77,9 +81,13 @@ describe('Donation Service', () => {
 
       const mockDonation = {
         _id: 'don123',
+        medicine: { name: 'Brufen' },
         populate: jest.fn().mockResolvedValue(true),
       };
       Donation.create.mockResolvedValue(mockDonation);
+
+      User.find.mockReturnValue({ select: jest.fn().mockResolvedValue([{ _id: 'admin1' }]) });
+      notificationService.createNotification.mockResolvedValue(true);
 
       const result = await donationService.createDonation(mockUserId, mockFiles);
 
