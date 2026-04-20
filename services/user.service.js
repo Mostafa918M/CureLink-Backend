@@ -22,14 +22,14 @@ class UserService {
     const allowedFields=["email","phone"]
     const newData={}
   
-    const updates=Object.keys(updatedData).forEach(ele=>{
+    Object.keys(updatedData).forEach(ele=>{
       if(allowedFields.includes(ele) && updatedData[ele]){
         newData[ele]=updatedData[ele]
       }
     })
 
     if(Object.keys(newData).length===0){
-      throw new ApiError("No valid fields provided for update", 404);
+      throw new ApiError("No valid fields provided for update", 400);
     }
     const updatedProfile=await User.findByIdAndUpdate(
       userId,
