@@ -875,7 +875,7 @@
  *           format: date-time
  *
  *     DeleteSessionsResponse:
- *      type: object
+ *       type: object
  *       properties:
  *         status:
  *           type: string
