@@ -27,8 +27,8 @@ class DonationController {
   async update(req, res, next) {
     const result = await donationService.updateDonation(
       req.params.id,
-      req.userId,
-      req.userRole,
+      req.user._id,
+      req.user.role,
       req.body,
       req.files
     );
@@ -37,7 +37,7 @@ class DonationController {
   }
 
   async delete(req, res, next) {
-    await donationService.deleteDonation(req.params.id, req.userId, req.userRole);
+    await donationService.deleteDonation(req.params.id, req.user._id, req.user.role);
 
     return sendResponse(res, 200, 'success', 'Donation deleted successfully', null);
   }
