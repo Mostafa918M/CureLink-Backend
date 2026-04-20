@@ -3,6 +3,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const { globalError, handleNotFound } = require('./middlewares/globalErrorHandler');
 //import routes here
+const userRoutes = require('./routes/user.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const adminInstitutionRoutes = require('./routes/admin.institution.routes');
 const institutionRoutes = require('./routes/institution.routes');
@@ -24,6 +25,7 @@ app.use('/health', (req, res) => {
 });
 
 // TODO: Add your routes here
+app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/admin/institutions', adminInstitutionRoutes);
 app.use('/api/v1/admin/donations', adminDonationRoutes);
