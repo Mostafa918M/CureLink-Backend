@@ -5,10 +5,12 @@ jest.mock('../models/donation.model');
 jest.mock('../models/request.model');
 jest.mock('../models/user.model');
 jest.mock('../models/medicine.model');
+jest.mock('../models/institution.model');
 
-const Donation = require('../models/donation.model');
-const Request  = require('../models/request.model');
-const User     = require('../models/user.model');
+const Donation    = require('../models/donation.model');
+const Request     = require('../models/request.model');
+const User        = require('../models/user.model');
+const Institution = require('../models/institution.model');
 
 const analyticsService = require('./analytics.service');
 
@@ -85,13 +87,15 @@ describe('getDonationCategories()', () => {
 });
 
 describe('getDonationGeographic()', () => {
-  it('maps phone prefix to carrier name', async () => {
-    // The aggregation pipeline does the mapping; we just verify the wrapper returns data
-    const geo = [{ phonePrefix: '010', carrier: 'Vodafone', count: 55 }];
-    Donation.aggregate.mockResolvedValue(geo);
+  it('returns byGovernorate and byDonorCarrier from two aggregation pipelines', async () => {
+    const byGov     = [{ governorate: 'Cairo', count: 40 }];
+    const byCarrier = [{ phonePrefix: '010', carrier: 'Vodafone', count: 55 }];
+    // getDonationGeographic runs TWO Donation.aggregate calls
+    mockAggregate(Donation, byGov, byCarrier);
 
     const result = await analyticsService.getDonationGeographic();
-    expect(result.data).toEqual(geo);
+    expect(result.byGovernorate).toEqual(byGov);
+    expect(result.byDonorCarrier).toEqual(byCarrier);
   });
 });
 
@@ -100,20 +104,27 @@ describe('getDonationGeographic()', () => {
    ══════════════════════════════════════════════════════════════ */
 
 describe('getInstitutionAnalytics()', () => {
-  it('computes inactive count from total - active', async () => {
-    const summary    = [{ _id: null, total: 25, active: 20, verified: 18 }];
-    const byActivity = [{ status: 'active', count: 20 }];
-    mockAggregate(User, summary, byActivity);
+  it('returns summary with verified/pending/rejected from Institution model', async () => {
+    const profileSummary = [{ _id: null, total: 25, verified: 18, pending: 5, rejected: 2 }];
+    const byVerification = [{ status: 'verified', count: 18 }];
+    const userSummary    = [{ _id: null, total: 25, active: 20 }];
+
+    // Institution.aggregate called twice (Promise.all), User.aggregate called once
+    mockAggregate(Institution, profileSummary, byVerification);
+    mockAggregate(User, userSummary);
 
     const result = await analyticsService.getInstitutionAnalytics();
 
     expect(result.summary.total).toBe(25);
-    expect(result.summary.inactive).toBe(5);
     expect(result.summary.verified).toBe(18);
+    expect(result.summary.inactive).toBe(5);   // 25 - 20
+    expect(result.summary.active).toBe(20);
   });
 
   it('handles empty collection gracefully', async () => {
-    mockAggregate(User, [], []);
+    mockAggregate(Institution, [], []);
+    mockAggregate(User, []);
+
     const result = await analyticsService.getInstitutionAnalytics();
     expect(result.summary.total).toBe(0);
     expect(result.summary.inactive).toBe(0);
@@ -121,9 +132,13 @@ describe('getInstitutionAnalytics()', () => {
 });
 
 describe('getInstitutionsByType()', () => {
-  it('returns type array', async () => {
-    const types = [{ type: 'general', count: 25 }];
-    User.aggregate.mockResolvedValue(types);
+  it('returns type array using Institution model', async () => {
+    const types = [
+      { type: 'hospital',  count: 10 },
+      { type: 'pharmacy',  count: 8  },
+      { type: 'clinic',    count: 7  },
+    ];
+    Institution.aggregate.mockResolvedValue(types);
 
     const result = await analyticsService.getInstitutionsByType();
     expect(result.data).toEqual(types);
@@ -131,17 +146,16 @@ describe('getInstitutionsByType()', () => {
 });
 
 describe('getInstitutionPerformance()', () => {
-  it('passes limit to aggregation', async () => {
-    User.aggregate.mockResolvedValue([]);
+  it('calls Institution.aggregate with limit', async () => {
+    Institution.aggregate.mockResolvedValue([]);
     await analyticsService.getInstitutionPerformance({ limit: '5' });
-    // Simply assert aggregate was called (limit handling is in pipeline)
-    expect(User.aggregate).toHaveBeenCalledTimes(1);
+    expect(Institution.aggregate).toHaveBeenCalledTimes(1);
   });
 
   it('defaults limit to 10 when not specified', async () => {
-    User.aggregate.mockResolvedValue([]);
+    Institution.aggregate.mockResolvedValue([]);
     await analyticsService.getInstitutionPerformance({});
-    expect(User.aggregate).toHaveBeenCalledTimes(1);
+    expect(Institution.aggregate).toHaveBeenCalledTimes(1);
   });
 });
 

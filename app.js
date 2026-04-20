@@ -2,10 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const { globalError, handleNotFound } = require('./middlewares/globalErrorHandler');
-//import routes here
-const userRoutes = require('./routes/user.routes');
 
 // Routes
+const userRoutes = require('./routes/user.routes');
 const requestRoutes = require('./routes/request.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const adminInstitutionRoutes = require('./routes/admin.institution.routes');
