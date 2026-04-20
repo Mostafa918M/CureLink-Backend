@@ -6,7 +6,7 @@ const asyncErrorHandler = require("../utils/asyncErrorHandler");
 const User = require("../models/user.model");
 
 exports.authenticate = asyncErrorHandler(async (req, res, next) => {
-    const token = req.cookies.accessToken;
+    const token = req.cookies.accessToken ||req.headers["authorization"]?.split(" ")[1];
     if (!token) {
         sendResponse(res, 401, "fail", "No access token provided");
         return;

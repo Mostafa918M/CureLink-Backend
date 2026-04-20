@@ -589,4 +589,310 @@
  *         timestamp:
  *           type: string
  *           format: date-time
+ * 
+ *
+ *     Notification:
+ *       type: object
+ *       description: User notification object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Notification ID
+ *         user:
+ *           oneOf:
+ *             - type: string
+ *               description: User ObjectId
+ *             - $ref: '#/components/schemas/User'
+ *         title:
+ *           type: string
+ *           description: Notification title
+ *         type:
+ *           type: string
+ *           description: Notification type (linked to template)
+ *         message:
+ *           type: string
+ *           description: Notification message content
+ *         isRead:
+ *           type: boolean
+ *           description: Whether notification is read
+ *           default: false
+ *         isDeleted:
+ *           type: boolean
+ *           description: Soft delete flag
+ *           default: false
+ *         deletedAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         deletedBy:
+ *           oneOf:
+ *             - type: string
+ *             - $ref: '#/components/schemas/User'
+ *           nullable: true
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *
+ *     NotificationTemplate:
+ *       type: object
+ *       description: Template used to generate notifications
+ *       properties:
+ *         _id:
+ *           type: string
+ *         type:
+ *           type: string
+ *           description: Unique notification type
+ *         title:
+ *           type: string
+ *         message:
+ *           type: string
+ *           description: Template message with placeholders like {{name}}
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *
+ *     NotificationResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *           example: Notification fetched successfully
+ *         data:
+ *           $ref: '#/components/schemas/Notification'
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *
+ *     NotificationsListResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *           example: Notifications fetched successfully
+ *         data:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Notification'
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *
+ *     UnreadCountResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *           example: Unread notifications count
+ *         data:
+ *           type: object
+ *           properties:
+ *             unreadCount:
+ *               type: integer
+ *               example: 5
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *
+ *     DeleteNotificationResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *           example: Notification deleted successfully
+ *         data:
+ *           $ref: '#/components/schemas/Notification'
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *
+ *     RestoreNotificationResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *           example: Notification restored successfully
+ *         data:
+ *           $ref: '#/components/schemas/Notification'
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ * 
+ *
+ *     UserProfileResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *           example: User profile fetched successfully
+ *         data:
+ *           $ref: '#/components/schemas/User'
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *
+ *     UpdateProfileInput:
+ *       type: object
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: user@example.com
+ *         phone:
+ *           type: string
+ *           example: "01012345678"
+ *
+ *     UploadAvatarResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *           example: User picture created successfully
+ *         data:
+ *           type: object
+ *           properties:
+ *             url:
+ *               type: string
+ *               example: https://cloudinary.com/image.jpg
+ *             public_id:
+ *               type: string
+ *               example: user/picture/abc123
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *
+ *     ChangePasswordInput:
+ *       type: object
+ *       required: [oldPassword, newPassword]
+ *       properties:
+ *         oldPassword:
+ *           type: string
+ *           example: OldPass123
+ *         newPassword:
+ *           type: string
+ *           example: NewPass123
+ *
+ *     Session:
+ *       type: object
+ *       description: Represents a refresh token session
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Refresh token document ID
+ *
+ *         hashToken:
+ *           type: string
+ *           description: Hashed refresh token value
+ *
+ *         user:
+ *           type: string
+ *           description: User ID
+ *
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *
+ *         createdByIp:
+ *           type: string
+ *           nullable: true
+ *
+ *         expiresAt:
+ *           type: string
+ *           format: date-time
+ *
+ *         revokedAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *
+ *         revokedByIp:
+ *           type: string
+ *           nullable: true
+ *
+ *         replacedByToken:
+ *           type: string
+ *           nullable: true
+ *
+ *         isActive:
+ *           type: boolean
+ *
+ *         isExpired:
+ *           type: boolean
+ *           description: Virtual field (expiresAt < now)
+ *
+ *         isValid:
+ *           type: boolean
+ *           description: Virtual field (active + not expired + not revoked)
+ *
+ *     SessionsResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *
+ *         message:
+ *           type: string
+ *           example: sessions fetched successfully
+ *
+ *         data:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Session'
+ *
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *
+ *     DeleteSessionsResponse:
+ *      type: object
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *
+ *         message:
+ *           type: string
+ *           example: sessions deleted successfully
+ *
+ *         data:
+ *           type: object
+ *           properties:
+ *             modifiedCount:
+ *               type: integer
+ *               example: 3
+ *
+ *         timestamp:
+ *           type: string
+ *           format: date-time
  */

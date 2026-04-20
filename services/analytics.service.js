@@ -1,10 +1,11 @@
 // services/analytics.service.js
 'use strict';
 
-const Donation = require('../models/donation.model');
-const Request  = require('../models/request.model');
-const User     = require('../models/user.model');
-const Medicine = require('../models/medicine.model');
+const Donation    = require('../models/donation.model');
+const Request     = require('../models/request.model');
+const User        = require('../models/user.model');
+const Medicine    = require('../models/medicine.model');
+const Institution = require('../models/institution.model');
 
 
 function dateGroupFormat(period) {
@@ -125,12 +126,36 @@ async function getDonationCategories() {
 }
 
 /**
- * Geographic distribution using the donor's phone-number prefix as a
- * proxy for Egyptian governorate.  If a proper location field is added
- * to User later, swap the grouping key.
+ * Geographic distribution of donations using the donor's institution
+ * governorate from the Institution model (addresses[0].governorate).
+ * Falls back to phone-prefix carrier grouping for regular donors.
  */
 async function getDonationGeographic() {
-  const data = await Donation.aggregate([
+  // Group institutions' received donations by governorate
+  const byGovernorate = await Donation.aggregate([
+    { $match: { matchedInstitution: { $exists: true } } },
+    {
+      $lookup: {
+        from:         'institutions',
+        localField:   'matchedInstitution',
+        foreignField: 'user',
+        as:           'institutionInfo',
+      },
+    },
+    { $unwind: { path: '$institutionInfo', preserveNullAndEmpty: false } },
+    { $unwind: { path: '$institutionInfo.addresses', preserveNullAndEmpty: false } },
+    {
+      $group: {
+        _id:   { $ifNull: ['$institutionInfo.addresses.governorate', 'Unknown'] },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { count: -1 } },
+    { $project: { governorate: '$_id', count: 1, _id: 0 } },
+  ]);
+
+  // Also group donors by phone-prefix carrier (for all donations)
+  const byDonorCarrier = await Donation.aggregate([
     { $match: { donor: { $exists: true } } },
     {
       $lookup: {
@@ -143,7 +168,7 @@ async function getDonationGeographic() {
     { $unwind: { path: '$donorInfo', preserveNullAndEmpty: false } },
     {
       $group: {
-        _id:   { $substr: ['$donorInfo.phone', 0, 3] },  // 010 / 011 / 012 / 015
+        _id:   { $substr: ['$donorInfo.phone', 0, 3] },
         count: { $sum: 1 },
       },
     },
@@ -152,7 +177,6 @@ async function getDonationGeographic() {
       $project: {
         phonePrefix: '$_id',
         count: 1,
-        // Map prefix to carrier/region label
         carrier: {
           $switch: {
             branches: [
@@ -169,7 +193,7 @@ async function getDonationGeographic() {
     },
   ]);
 
-  return { data };
+  return { byGovernorate, byDonorCarrier };
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -177,59 +201,62 @@ async function getDonationGeographic() {
    ═══════════════════════════════════════════════════════════════ */
 
 async function getInstitutionAnalytics() {
-  const [summary, byActivity] = await Promise.all([
-    User.aggregate([
-      { $match: { role: 'institution' } },
+  // Institution profile stats (type, verification) from Institution model
+  const [profileSummary, byVerification] = await Promise.all([
+    Institution.aggregate([
       {
         $group: {
           _id:      null,
           total:    { $sum: 1 },
-          active:   { $sum: { $cond: ['$isActive',   1, 0] } },
-          verified: { $sum: { $cond: ['$isVerified', 1, 0] } },
+          verified: { $sum: { $cond: [{ $eq: ['$verificationStatus', 'verified'] }, 1, 0] } },
+          pending:  { $sum: { $cond: [{ $eq: ['$verificationStatus', 'pending']  }, 1, 0] } },
+          rejected: { $sum: { $cond: [{ $eq: ['$verificationStatus', 'rejected'] }, 1, 0] } },
         },
       },
     ]),
-    User.aggregate([
-      { $match: { role: 'institution' } },
-      {
-        $group: {
-          _id:   '$isActive',
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $project: {
-          status: { $cond: ['$_id', 'active', 'inactive'] },
-          count: 1,
-          _id: 0,
-        },
-      },
+    Institution.aggregate([
+      { $group: { _id: '$verificationStatus', count: { $sum: 1 } } },
+      { $project: { status: '$_id', count: 1, _id: 0 } },
     ]),
   ]);
 
-  const s = summary[0] || { total: 0, active: 0, verified: 0 };
+  // Active/inactive from User model (isActive flag)
+  const userSummary = await User.aggregate([
+    { $match: { role: 'institution' } },
+    {
+      $group: {
+        _id:    null,
+        active: { $sum: { $cond: ['$isActive', 1, 0] } },
+        total:  { $sum: 1 },
+      },
+    },
+  ]);
+
+  const p = profileSummary[0] || { total: 0, verified: 0, pending: 0, rejected: 0 };
+  const u = userSummary[0]    || { total: 0, active: 0 };
 
   return {
     summary: {
-      total:    s.total,
-      active:   s.active,
-      inactive: s.total - s.active,
-      verified: s.verified,
+      total:    p.total,
+      verified: p.verified,
+      pending:  p.pending,
+      rejected: p.rejected,
+      active:   u.active,
+      inactive: u.total - u.active,
     },
-    byActivity,
+    byVerificationStatus: byVerification,
   };
 }
 
 /**
- * Institution breakdown by role type (currently all are 'institution';
- * reserved for when sub-types such as hospital / pharmacy / clinic are added).
+ * Institution breakdown by type using the real Institution model.
+ * Types: hospital | pharmacy | clinic | charity | medical_center | ngo | other
  */
 async function getInstitutionsByType() {
-  const data = await User.aggregate([
-    { $match: { role: 'institution' } },
+  const data = await Institution.aggregate([
     {
       $group: {
-        _id:   { $ifNull: ['$institutionType', 'general'] },
+        _id:   '$type',
         count: { $sum: 1 },
       },
     },
@@ -241,36 +268,53 @@ async function getInstitutionsByType() {
 }
 
 /**
- * Per-institution performance: donations received + requests created.
+ * Per-institution performance: donations received + requests created/fulfilled.
+ * Uses the Institution model (with real name, type, governorate) joined to User.
  */
 async function getInstitutionPerformance(query) {
   const limit = parseInt(query.limit, 10) || 10;
 
-  const data = await User.aggregate([
-    { $match: { role: 'institution' } },
+  const data = await Institution.aggregate([
+    // Join to User to get isActive
+    {
+      $lookup: {
+        from:         'users',
+        localField:   'user',
+        foreignField: '_id',
+        as:           'userInfo',
+      },
+    },
+    { $unwind: { path: '$userInfo', preserveNullAndEmpty: false } },
     // Join donations matched to this institution
     {
       $lookup: {
         from:         'donations',
-        localField:   '_id',
+        localField:   'user',
         foreignField: 'matchedInstitution',
         as:           'receivedDonations',
       },
     },
-    // Join requests created by this institution
+    // Join requests created by this institution (institution field = user._id)
     {
       $lookup: {
         from:         'requests',
-        localField:   '_id',
+        localField:   'user',
         foreignField: 'institution',
         as:           'createdRequests',
       },
     },
     {
       $project: {
-        name:              { $concat: ['$firstName', ' ', '$lastName'] },
-        email:             1,
-        isActive:          1,
+        name:               '$name',
+        type:               '$type',
+        verificationStatus: '$verificationStatus',
+        governorate: {
+          $ifNull: [
+            { $arrayElemAt: ['$addresses.governorate', 0] },
+            'Unknown',
+          ],
+        },
+        isActive:          '$userInfo.isActive',
         donationsReceived: { $size: '$receivedDonations' },
         requestsCreated:   { $size: '$createdRequests' },
         fulfilledRequests: {
@@ -281,6 +325,7 @@ async function getInstitutionPerformance(query) {
             },
           },
         },
+        statsFromModel: '$stats',
       },
     },
     { $sort:  { donationsReceived: -1 } },
