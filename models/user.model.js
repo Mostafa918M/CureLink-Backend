@@ -43,8 +43,8 @@ const userSchema = new mongoose.Schema({
         default: "donor",
     },
     avatar: {
-        public_id: String,
-        url: String,
+        public_id: { type: String, default: null },
+        url: { type: String, default: null },
     },
     isVerified: {
         type: Boolean,
