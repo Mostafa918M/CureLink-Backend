@@ -1,5 +1,5 @@
-const donationService = require('./Donation.service');
-const AiService = require('./Ai.service');
+const donationService = require('./donation.service');
+const AiService = require('./ai.service');
 const ImageStorageService = require('./imagestorage.service');
 const Donation = require('../models/donation.model');
 const Medicine = require('../models/medicine.model');
@@ -7,7 +7,7 @@ const ApiError = require('../utils/apiError');
 const notificationService = require('./notification.service');
 const User = require('../models/user.model');
 
-jest.mock('./Ai.service');
+jest.mock('./ai.service');
 jest.mock('./imagestorage.service');
 jest.mock('../models/donation.model');
 jest.mock('../models/medicine.model');
