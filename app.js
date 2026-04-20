@@ -16,6 +16,7 @@ const adminDonationRoutes = require('./routes/admin.donation.routes');
 const analyticsRoutes = require('./routes/analytics.routes');
 const reportRoutes = require('./routes/report.routes');
 const adminDashboardRoutes = require('./routes/adminDashboard.routes');
+const adminUserRoutes = require('./routes/adminUser.routes');
 const { swaggerUi, specs } = require('./config/swagger');
 
 const app = express();
@@ -41,6 +42,7 @@ app.use('/api/v1/donations', donationRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/admin/dashboard', adminDashboardRoutes);
+app.use('/api/v1/admin/users', adminUserRoutes);
 app.use(handleNotFound);
 app.use(globalError);
 
