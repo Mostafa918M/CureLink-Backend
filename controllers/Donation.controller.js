@@ -41,6 +41,11 @@ class DonationController {
 
     return sendResponse(res, 200, 'success', 'Donation deleted successfully', null);
   }
+
+  async getMyDonations(req, res, next) {
+    const result = await donationService.getMyDonations(req.user._id, req.query);
+    return sendResponse(res, 200, 'success', 'Your donations fetched successfully', result);
+  }
 }
 
 const controller = new DonationController();
@@ -51,4 +56,5 @@ module.exports = {
   create: asyncErrorHandler(controller.create.bind(controller)),
   update: asyncErrorHandler(controller.update.bind(controller)),
   delete: asyncErrorHandler(controller.delete.bind(controller)),
+  getMyDonations: asyncErrorHandler(controller.getMyDonations.bind(controller)),
 };
