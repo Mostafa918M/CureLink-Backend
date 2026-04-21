@@ -88,15 +88,27 @@ class InstitutionService {
       throw new ApiError("Institution not found", 404);
     }
 
-    const allowedFields = ["name","type","licenseNumber","description","addresses","contactNumber"]
+    const allowedFields = ["name","type","licenseNumber","description","addresses","contactNumber","logo"]
     const safeUpdate = {}
+    const ignoredFields = [];
+
 
     Object.keys(updateData).forEach(ele => {
-      if(updateData[ele]!== undefined && updateData[ele]!=="" && allowedFields.includes(ele)){
+      if (updateData[ele] === undefined || updateData[ele] === "") return
+      if(allowedFields.includes(ele)){
          safeUpdate[ele] = updateData[ele]
-      }
+      }else {
+      ignoredFields.push(ele);
+    }
     });   
 
+    if (Object.keys(safeUpdate).length === 0) {
+      if (ignoredFields.length > 0) {
+        throw new ApiError(`You are not allowed to update these fields: ${ignoredFields.join(", ")}`,400);
+      }
+      throw new ApiError("No data provided to update", 400);
+    }
+  
     const legalFields = ['licenseNumber'];
     const replacingLegalData = legalFields.some(field =>
       safeUpdate[field]  && safeUpdate[field] !== existingInstitution[field]
@@ -124,7 +136,15 @@ class InstitutionService {
       {new: true}
     )
 
+    let message = "Profile updated successfully"
+    if (ignoredFields.length > 0) {
+      message += `. Ignored fields: ${ignoredFields.join(", ")}`;
+     }
+
+
     return {
+      message,
+      data:{
       name: updatedInstitution.name,
       type: updatedInstitution.type,
       description: updatedInstitution.description,
@@ -132,7 +152,7 @@ class InstitutionService {
       addresses: updatedInstitution.addresses,
       licenseNumber: updatedInstitution.licenseNumber,
       contactNumber: updatedInstitution.contactNumber
-    };
+    }}
   }
 
 
