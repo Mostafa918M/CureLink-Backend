@@ -130,7 +130,9 @@
  *         description: Institution not found
  *       500:
  *         description: Server error
- * /**
+ */
+
+/**
  * @swagger
  * /api/v1/admin/institutions/documents/{insId}:
  *   get:
