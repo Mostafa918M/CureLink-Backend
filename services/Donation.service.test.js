@@ -152,7 +152,7 @@ describe('Donation Service', () => {
 
       const result = await donationService.getDonationById('don123');
       expect(result._id).toBe('don123');
-      expect(mockQuery.populate).toHaveBeenCalledTimes(3); // Ensure all populates were chained
+      expect(mockQuery.populate).toHaveBeenCalledTimes(3);
     });
   });
 

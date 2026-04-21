@@ -27,8 +27,8 @@ class DonationController {
   async update(req, res, next) {
     const result = await donationService.updateDonation(
       req.params.id,
-      req.userId,
-      req.userRole,
+      req.user._id,
+      req.user.role,
       req.body,
       req.files
     );
@@ -37,9 +37,14 @@ class DonationController {
   }
 
   async delete(req, res, next) {
-    await donationService.deleteDonation(req.params.id, req.userId, req.userRole);
+    await donationService.deleteDonation(req.params.id, req.user._id, req.user.role);
 
     return sendResponse(res, 200, 'success', 'Donation deleted successfully', null);
+  }
+
+  async getMyDonations(req, res, next) {
+    const result = await donationService.getMyDonations(req.user._id, req.query);
+    return sendResponse(res, 200, 'success', 'Your donations fetched successfully', result);
   }
 }
 
@@ -51,4 +56,5 @@ module.exports = {
   create: asyncErrorHandler(controller.create.bind(controller)),
   update: asyncErrorHandler(controller.update.bind(controller)),
   delete: asyncErrorHandler(controller.delete.bind(controller)),
+  getMyDonations: asyncErrorHandler(controller.getMyDonations.bind(controller)),
 };
