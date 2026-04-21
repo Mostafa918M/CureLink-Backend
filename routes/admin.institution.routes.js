@@ -11,5 +11,6 @@ router.get('/pending', adminInstitutionController.getPendingInstitutions);
 router.get('/:id', adminInstitutionController.getInstitutionDetails);
 router.patch('/:id/verify', adminInstitutionController.verifyInstitution);
 router.patch('/:id/reject', adminInstitutionController.rejectInstitution);
+router.get("/documents/:insId",adminInstitutionController.getInstitutionDocuments);
 
 module.exports = router;

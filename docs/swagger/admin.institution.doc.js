@@ -130,4 +130,61 @@
  *         description: Institution not found
  *       500:
  *         description: Server error
+ * /**
+ * @swagger
+ * /api/v1/admin/institutions/documents/{insId}:
+ *   get:
+ *     summary: Get institution documents (Admin)
+ *     description: Retrieve all documents for a specific institution. Accessible only by admin and superadmin.
+ *     tags: [Admin-Institutions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: insId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The institution ID
+ *     responses:
+ *       200:
+ *         description: Institution documents fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Institution documents fetched successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     institutionName:
+ *                       type: string
+ *                     institutionDocs:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           file:
+ *                             type: string
+ *                           type:
+ *                             type: string
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                     allIsUploaded:
+ *                       type: boolean
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Institution or documents not found
+ *       500:
+ *         description: Server error
  */

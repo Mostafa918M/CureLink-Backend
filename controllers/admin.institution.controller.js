@@ -32,6 +32,12 @@ class AdminInstitutionController {
         const institution = await AdminInstitutionService.rejectInstitution(req.params.id, reason);
         return sendResponse(res, 200, "success", "Institution rejected successfully", { institution });
     }
+
+    async getInstitutionDocuments(req,res){
+        const institutionId  = req.params.insId
+        const result = await AdminInstitutionService.getDocumentsByAdmin(institutionId,req.userId);
+        return sendResponse(res, 200, "success", "Institution documents fetched successfully",result);
+    }
 }
 
 const controller = new AdminInstitutionController();
@@ -42,4 +48,5 @@ module.exports = {
     getInstitutionDetails: asyncErrorHandler(controller.getInstitutionDetails.bind(controller)),
     verifyInstitution: asyncErrorHandler(controller.verifyInstitution.bind(controller)),
     rejectInstitution: asyncErrorHandler(controller.rejectInstitution.bind(controller)),
+    getInstitutionDocuments: asyncErrorHandler(controller.getInstitutionDocuments.bind(controller)),
 };

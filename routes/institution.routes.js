@@ -12,7 +12,7 @@ router.put('/profile',authenticate ,authorize("institution"),uploadInstitutionLo
 router.get('/', institutionController.getAllInstitutions);       //get only verified institution for public 
   
 router.post("/documents",authenticate,authorize("institution"),uploadInstitutionDocuments,institutionController.postDocuments)     //upload verification documents 
-router.get("/documents",authenticate,authorize("institution","admin","superadmin"),institutionController.getDocuments)      //get institution documents
+router.get("/documents",authenticate,authorize("institution"),institutionController.getDocuments)      //get institution documents
 
 router.get('/:id',institutionValidator.getOneInstitution , institutionController.getOneInstitution);     //get institution details for public
 

@@ -1,4 +1,5 @@
 const Institution = require("../models/institution.model");
+const institutionDocs=require("../models/ins-documents.model")
 const ApiError = require("../utils/apiError");
 const notificationService = require("./notification.service");
 
@@ -106,6 +107,35 @@ class AdminInstitutionService {
         }
 
         return institution;
+    }
+
+    async getDocumentsByAdmin(institutionId,userId){
+
+        const institution = await Institution.findById(institutionId);
+        if (!institution) {
+            throw new ApiError("Institution not found", 404);
+        }
+
+        const instDocs=await institutionDocs
+            .find({institution:institutionId})
+            .select("file type createdAt")
+            .sort({ createdAt: -1 })
+            .lean()
+
+        if (instDocs.length===0) {
+            throw new ApiError("No documents found", 404);
+        }
+
+        const isUploaded = await institutionDocs.getRequiredUploaded(institutionId);
+        const allRequiredUploaded=isUploaded.every(d=>d.uploaded)
+        
+        return{
+            institutionName: institution.name,
+            institutionDocs:instDocs,
+            allIsUploaded:allRequiredUploaded
+        }  
+
+
     }
 }
 
