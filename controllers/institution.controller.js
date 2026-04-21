@@ -19,7 +19,7 @@ class InstitutionController {
       licenseNumber: req.body.licenseNumber,
       description: req.body.description,
       addresses: address,
-      logo: req.file
+      logo: req.file?.buffer
     };
 
     const institution = await InstitutionService.register(institurionData,req.userId);

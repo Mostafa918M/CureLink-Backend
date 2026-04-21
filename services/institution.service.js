@@ -8,11 +8,6 @@ const user = require("../models/user.model");
 class InstitutionService {
 
    async register(data,owner) {
-    // verify of user role
-    // if (owner.role !== "institution") {
-    //   throw new ApiError("Only users with role 'institution' can register an institution",403);
-    // }
-
     let{name,type,licenseNumber,description,addresses,logo}=data
 
     const existingInstitution = await Institution.findOne({user:owner})
@@ -20,10 +15,15 @@ class InstitutionService {
     if (existingInstitution) {
     throw new ApiError("Institution already registered for this user", 400);
     }
+    const existingLicense = await Institution.findOne({ licenseNumber:licenseNumber })
+    if (existingLicense) {
+      throw new ApiError("License number already exists", 400)
+    }
+
 
     let uploadLogo=null
     if(logo){
-       uploadLogo=await uploadImage(logo.buffer,"institutions/logo")
+      uploadLogo=await uploadImage(logo,"institutions/logo")
     }
    
     const institution=await Institution.create({
@@ -288,7 +288,7 @@ class InstitutionService {
 
     //send notifcation from system to institution after registration & document upload
     await notificationService.createNotification({
-      userId:existingInstitution._id,
+      userId:existingInstitution.user,
       type:"institution_under_review",
       })
 

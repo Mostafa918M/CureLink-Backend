@@ -4,6 +4,7 @@ const { generateOTP } = require("../utils/otp");
 const TokenUtils = require("../utils/tokenUtils");
 const mailer = require("../utils/mailer");
 const bcrypt = require('bcryptjs');
+const institutionModel = require("../models/institution.model");
 
 
 class AuthService {
@@ -162,8 +163,24 @@ class AuthService {
     if (user.failedLoginAttempts > 0) {
       await user.resetLoginAttempts();
     }
+
+
+    //check institution approval
+    let institutionStatus = null;
+    if(user.role==="institution"){
+      const institution=await institutionModel.findOne({user:user._id})
+      if (!institution) {
+        throw new ApiError("Institution profile not found", 404);
+      }
+      institutionStatus=institution.verificationStatus
+      if(institutionStatus !== "verified"){
+        throw new ApiError( `Your institution is ${institution.verificationStatus}. Please wait for admin approval.`, 403)
+      }
+    }
+
     user.lastLogin = Date.now();
     await user.save();
+    
 
     // generate token & store refresh token in DB
     const accessToken = TokenUtils.generateAccessToken(user._id, user.role);
@@ -181,7 +198,8 @@ class AuthService {
         phone: user.phone,
         role: user.role,
         isVerified: user.isVerified,
-      }
+      },
+      ...(institutionStatus && { institutionStatus }) 
     };
   }
 
