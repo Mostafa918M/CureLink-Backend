@@ -88,6 +88,13 @@ const InstitutionSchema = new mongoose.Schema({
         trim: true
     },
 
+    contactNumber:{
+      type: String,
+      default:null,
+      trim: true,
+      match: [/^\+?[0-9]{7,15}$/, "Invalid phone number."]
+    },
+
      stats: {
       donationsReceived: { type: Number, default: 0 },
       requestsCompleted: { type: Number, default: 0 },

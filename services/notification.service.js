@@ -56,12 +56,19 @@ class NotificationService {
   }
 
 
-  async getNotificationById(notificationId,userId) {
-    let notification=await Notification.findOne({
-      _id:notificationId,
-      user:userId,
-      isDeleted:false
-    })
+  async getNotificationById(notificationId,userId,role) {
+
+    const isAdmin = ['admin', 'superadmin'].includes(role)
+    const filter = {
+      _id: notificationId,
+      isDeleted: false
+    }
+
+    if(!isAdmin){
+      filter.user=userId
+    }
+
+    let notification=await Notification.findOne(filter)
    .select(" type title message isRead createdAt")
    .lean()
     if(!notification){

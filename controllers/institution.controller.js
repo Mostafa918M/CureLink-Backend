@@ -57,7 +57,8 @@ class InstitutionController {
       licenseNumber: req.body.licenseNumber,
       description: req.body.description,
       addresses: address,
-      logo: req.file?.buffer
+      logo: req.file?.buffer,
+      contactNumber:req.body.contactNumber
     };
 
     const updatedInstitution = await InstitutionService.updateProfile(req.userId,institurionData);

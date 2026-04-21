@@ -68,7 +68,7 @@ class InstitutionService {
 
     let existingInstitution=await Institution.findOne({user:userId})
     .select(
-        'name type description logo addresses licenseNumber  '
+        'name type description logo addresses licenseNumber contactNumber '
       )
     .lean();
     if(!existingInstitution){
@@ -88,42 +88,39 @@ class InstitutionService {
       throw new ApiError("Institution not found", 404);
     }
 
-    const updates=Object.keys(updateData)  
-    updates.forEach(ele => {
-      if(updateData[ele]=== undefined || updateData[ele]===""){
-        delete updateData[ele]
+    const allowedFields = ["name","type","licenseNumber","description","addresses","contactNumber"]
+    const safeUpdate = {}
+
+    Object.keys(updateData).forEach(ele => {
+      if(updateData[ele]!== undefined && updateData[ele]!=="" && allowedFields.includes(ele)){
+         safeUpdate[ele] = updateData[ele]
       }
     });   
 
     const legalFields = ['licenseNumber'];
     const replacingLegalData = legalFields.some(field =>
-      updates.includes(field) && updateData[field] !== existingInstitution[field]
+      safeUpdate[field]  && safeUpdate[field] !== existingInstitution[field]
       );
 
     //Prevent editing legal data after approval
     if(existingInstitution.verificationStatus === "verified" && replacingLegalData){
-      updateData.verificationStatus="pending"
+      safeUpdate.verificationStatus="pending"
     }
 
 
     if(updateData.logo){
       // delete old logo if exists
       if(existingInstitution.logoPublicId){
-        //delete from cloudinary
         await deleteImage(existingInstitution.logoPublicId)
-        //delete from DB
-        existingInstitution.logo=null
-        existingInstitution.logoPublicId=null
-        await existingInstitution.save()
       }
       const uploadedLogo = await uploadImage(updateData.logo,"institutions/logo")
-      updateData.logo=uploadedLogo.url
-      updateData.logoPublicId=uploadedLogo.publicId
+      safeUpdate.logo=uploadedLogo.url
+      safeUpdate.logoPublicId=uploadedLogo.publicId
     }
 
     const updatedInstitution= await Institution.findOneAndUpdate(
       {user:userID},
-      {$set:updateData},
+      {$set:safeUpdate},
       {new: true}
     )
 
@@ -134,7 +131,7 @@ class InstitutionService {
       logo: updatedInstitution.logo,
       addresses: updatedInstitution.addresses,
       licenseNumber: updatedInstitution.licenseNumber,
-      // verificationStatus: updatedInstitution.verificationStatus
+      contactNumber: updatedInstitution.contactNumber
     };
   }
 
@@ -153,10 +150,7 @@ class InstitutionService {
     const skip = (currentPage - 1) * perPage
 
 
-    let query= Institution.find(filter).select("name description logo addresses")
-       .populate({
-        path:"user",
-        select:"email phone"})
+    let query= Institution.find(filter).select("name description logo addresses contactNumber")
        .limit(perPage)
        .skip(skip)
 
@@ -183,10 +177,7 @@ class InstitutionService {
       _id: institutionID,
       verificationStatus: "verified"
     })
-    .populate({
-      path:"user",
-      select:"email phone"
-    }).lean()
+    .lean()
     if(!existingInstitution){
       throw new ApiError("Institution not found", 404);
     }
@@ -198,8 +189,7 @@ class InstitutionService {
         description: existingInstitution.description,
         addresses: existingInstitution.addresses,
         logo: existingInstitution.logo,
-        email:existingInstitution.user?.email,
-        phone:existingInstitution.user?.phone,
+        phone:existingInstitution.contactNumber,
         joinedAt:existingInstitution.createdAt
       }
     }

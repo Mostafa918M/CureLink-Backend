@@ -25,7 +25,7 @@ class NotificationController {
 
   async getOne(req, res) {
     let notificationId=req.params.id
-    const notification=await notificationService.getNotificationById(notificationId,req.userId)
+    const notification=await notificationService.getNotificationById(notificationId,req.userId,req.userRole)
 
     return sendResponse(
       res, 
