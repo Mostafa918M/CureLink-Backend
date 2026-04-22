@@ -34,7 +34,8 @@ if (!fs.existsSync(REPORTS_DIR)) {
  */
 function buildPDF(title, columns, rows) {
   return new Promise((resolve, reject) => {
-    const doc    = new PDFDoc({ margin: 40, size: 'A4' });
+    // `bufferPages: true` is needed to draw footers on all pages at the end
+    const doc    = new PDFDoc({ margin: 40, size: 'A4', bufferPages: true });
     const chunks = [];
 
     doc.on('data',  chunk => chunks.push(chunk));
@@ -42,56 +43,123 @@ function buildPDF(title, columns, rows) {
     doc.on('error', err   => reject(err));
 
     /* ── Header ── */
-    doc.fontSize(18).font('Helvetica-Bold').text(title, { align: 'center' });
+    doc.fontSize(20).font('Helvetica-Bold').text(title, { align: 'center' });
     doc.moveDown(0.5);
     doc.fontSize(10).font('Helvetica').fillColor('#666666')
        .text(`Generated: ${new Date().toUTCString()}`, { align: 'center' });
-    doc.moveDown(1).fillColor('#000000');
+    doc.moveDown(1.5).fillColor('#000000');
 
-    /* ── Column widths (equal split across page) ── */
+    /* ── Column Config ── */
     const usableWidth = doc.page.width - 80;
-    const colWidth    = Math.floor(usableWidth / columns.length);
+    
+    // Dynamic weight distribution
+    const getColumnWeight = (header) => {
+      const lower = header.toLowerCase();
+      if (lower === '#') return 0.8;
+      if (lower.includes('qty') || lower.includes('quantity')) return 1.6;
+      if (lower === 'unit') return 1.2;
+      if (lower.includes('status')) return 1.6;
+      if (lower.includes('priority')) return 1.4;
+      if (lower.includes('date') || lower.includes('created') || lower.includes('expires') || lower.includes('at') || lower.includes('joined')) return 2.0;
+      if (lower.includes('donor') || lower.includes('institution') || lower.includes('medicine') || lower.includes('email') || lower.includes('name')) return 2.8;
+      return 1.5; 
+    };
 
-    /* ── Table header ── */
+    const getAlign = (header) => {
+      const lower = header.toLowerCase();
+      if (lower === '#' || lower.includes('qty') || lower.includes('quantity')) return 'center';
+      if (lower.includes('date') || lower.includes('created') || lower.includes('expires') || lower.includes('at') || lower.includes('joined')) return 'right';
+      return 'left';
+    };
+
+    const weights = columns.map(getColumnWeight);
+    const aligns = columns.map(getAlign);
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+    const colWidths = weights.map(w => Math.floor(usableWidth * (w / totalWeight)));
+
+    /* ── Table Row Drawer ── */
+    const rowHeight = 28;
+    const paddingY = 8;
+    const paddingX = 4; // reduced from 6 to give text more inner breathing room
+
     const drawRow = (data, isHeader = false) => {
       const startX = 40;
       let   startY = doc.y;
 
+      // Draw background
       if (isHeader) {
-        doc.rect(startX, startY, usableWidth, 20).fill('#2c3e50');
-        doc.fillColor('#ffffff').fontSize(9).font('Helvetica-Bold');
-      } else {
-        doc.fillColor('#000000').fontSize(8).font('Helvetica');
+        doc.rect(startX, startY, usableWidth, rowHeight).fill('#2c3e50');
       }
 
+      // Draw horizontal subtle border for data rows
+      if (!isHeader) {
+        doc.moveTo(startX, startY + rowHeight)
+           .lineTo(startX + usableWidth, startY + rowHeight)
+           .strokeColor('#e0e0e0').lineWidth(0.5).stroke();
+      }
+
+      // Setup Text Options
+      if (isHeader) {
+        doc.fillColor('#ffffff').fontSize(9).font('Helvetica-Bold');
+      } else {
+        doc.fillColor('#333333').fontSize(8).font('Helvetica');
+      }
+
+      // Draw Cells
+      let currentX = startX;
       data.forEach((cell, i) => {
-        doc.text(String(cell ?? ''), startX + i * colWidth + 4, startY + 5, {
-          width:    colWidth - 8,
+        const text = String(cell ?? '');
+        doc.text(text, currentX + paddingX, startY + paddingY, {
+          width: colWidths[i] - (paddingX * 2),
+          align: aligns[i],
           ellipsis: true,
           lineBreak: false,
         });
+        currentX += colWidths[i];
       });
-      doc.y = startY + 22;
-      if (!isHeader) {
-        doc.moveTo(startX, doc.y - 2).lineTo(startX + usableWidth, doc.y - 2)
-           .strokeColor('#dddddd').lineWidth(0.5).stroke();
-      }
+
+      doc.y = startY + rowHeight;
     };
 
+    // Table Header
     drawRow(columns, true);
 
+    // Table Rows
     rows.forEach((row, idx) => {
-      if (doc.y > doc.page.height - 60) { doc.addPage(); }
-      if (idx % 2 === 0) {
-        doc.rect(40, doc.y, usableWidth, 20).fill('#f5f5f5');
+      // Pagination check (keep 80px for bottom margin/footer)
+      if (doc.y > doc.page.height - 80) { 
+        doc.addPage(); 
+        drawRow(columns, true); // redraw header on new page
       }
+      
+      // Zebra striping
+      if (idx % 2 === 0) {
+        doc.rect(40, doc.y, usableWidth, rowHeight).fill('#fafafa');
+      }
+      
       drawRow(row);
     });
 
     /* ── Footer ── */
-    doc.moveDown(2);
-    doc.fontSize(8).fillColor('#999999')
-       .text(`CureLink — ${title} | ${rows.length} record(s)`, { align: 'center' });
+    // Add page footer tracking by looping through all pages
+    const range = doc.bufferedPageRange();
+    for (let i = range.start; i < range.start + range.count; i++) {
+      doc.switchToPage(i);
+      
+      // Top divider line for footer
+      doc.moveTo(40, doc.page.height - 40)
+         .lineTo(doc.page.width - 40, doc.page.height - 40)
+         .strokeColor('#e0e0e0').lineWidth(0.5).stroke();
+         
+      // Text
+      doc.fontSize(8).fillColor('#666666').font('Helvetica');
+      doc.text(
+        `CureLink — ${title} | ${rows.length} record(s) | Page ${i + 1} of ${range.count}`,
+        40, 
+        doc.page.height - 30, 
+        { align: 'right', width: usableWidth }
+      );
+    }
 
     doc.end();
   });
