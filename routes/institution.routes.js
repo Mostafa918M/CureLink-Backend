@@ -6,7 +6,7 @@ const { authenticate, authorize } = require('../middlewares/auth');
 const { uploadInstitutionDocuments, uploadInstitutionLogo } = require('../middlewares/multer');
 
 
-router.post('/register',authenticate,authorize("institution"),uploadInstitutionLogo,institutionValidator.register, institutionController.register);  //institution registeration if user role==institution 
+router.post('/register',authenticate,authorize("donor"),uploadInstitutionLogo,institutionValidator.register, institutionController.register);  //institution registeration if user role==institution 
 router.get('/profile',authenticate ,authorize("institution","admin","superadmin"),institutionController.getProfile);    //get own intitution profile
 router.put('/profile',authenticate ,authorize("institution"),uploadInstitutionLogo,institutionValidator.updateProfile, institutionController.updateProfile);  //update institution profile
 router.get('/', institutionController.getAllInstitutions);       //get only verified institution for public 
