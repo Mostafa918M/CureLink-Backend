@@ -26,7 +26,6 @@ class AuthService {
       email,
       phone,
       password,
-      role,
       otp,
       otpExpiry,
     });
@@ -172,10 +171,7 @@ class AuthService {
       if (!institution) {
         throw new ApiError("Institution profile not found", 404);
       }
-      institutionStatus=institution.verificationStatus
-      if(institutionStatus !== "verified"){
-        throw new ApiError( `Your institution is ${institution.verificationStatus}. Please wait for admin approval.`, 403)
-      }
+
     }
 
     user.lastLogin = Date.now();

@@ -4,6 +4,7 @@ const sendResponse = require("../utils/sendResponse");
 const ApiError = require("../utils/apiError");
 const asyncErrorHandler = require("../utils/asyncErrorHandler");
 const User = require("../models/user.model");
+const Institution = require("../models/institution.model");
 
 exports.authenticate = asyncErrorHandler(async (req, res, next) => {
     const token = req.cookies.accessToken ||req.headers["authorization"]?.split(" ")[1];
@@ -40,3 +41,29 @@ exports.authorize = (...roles) => {
         next();
     };
 };
+
+/**
+ * Middleware: blocks institution users whose verificationStatus is not "verified".
+ * Non-institution roles (admin, superadmin, donor) are passed through without a DB lookup.
+ * Must be placed AFTER authenticate() so that req.user is already populated.
+ */
+exports.requireVerifiedInstitution = asyncErrorHandler(async (req, res, next) => {
+    // Only enforce verification for institution-role users
+    if (req.userRole !== "institution") return next();
+
+    const institution = await Institution.findOne({ user: req.userId }).select("verificationStatus");
+
+    if (!institution) {
+        return next(new ApiError("No institution profile found for this account", 403));
+    }
+
+    if (institution.verificationStatus !== "verified") {
+        return next(
+            new ApiError(`Institution access denied. Your verification status is "${institution.verificationStatus}". Please wait for admin approval.`, 403)
+        );
+    }
+
+    // Attach the institution to the request for downstream use
+    req.institution = institution;
+    next();
+});

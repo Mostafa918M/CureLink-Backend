@@ -1,6 +1,6 @@
 const express = require('express');
 const requestController = require('../controllers/request.controller');
-const { authenticate, authorize } = require('../middlewares/auth');
+const { authenticate, authorize, requireVerifiedInstitution } = require('../middlewares/auth');
 const requestValidator = require('../validators/request.validator');
 
 const router = express.Router();
@@ -21,13 +21,13 @@ router.get(
 
 router
   .route('/')
-  .post(authorize('institution'), requestValidator.create, requestController.create)
+  .post(authorize('institution'), requireVerifiedInstitution, requestValidator.create, requestController.create)
   .get(authorize('institution', 'admin', 'superadmin'), requestController.getAll);
 
 router
   .route('/:id')
   .get(requestValidator.idParam, requestController.getOne)
-  .patch(authorize('institution'), requestValidator.update, requestController.update)
+  .patch(authorize('institution'), requireVerifiedInstitution, requestValidator.update, requestController.update)
   .delete(authorize('institution'), requestValidator.idParam, requestController.delete);
 
 module.exports = router;
