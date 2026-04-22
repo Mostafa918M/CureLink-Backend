@@ -162,7 +162,10 @@ class InstitutionService {
     }
 
     if(search){
-      filter.$text={$search:search}
+       filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } }
+  ]
     }
 
     const currentPage = Math.max(parseInt(page) || 1, 1)
@@ -176,13 +179,11 @@ class InstitutionService {
 
 
     if(search){
-      query=query
-      .sort({ score: { $meta: "textScore" }})
-      .select({ score: { $meta: "textScore" } })
-    }
-    else{
-      query=query.sort({ createdAt: -1 })
-    }
+      if (search) {
+        query = query.sort({ name: 1 })  
+      } else {
+        query = query.sort({ createdAt: -1 })
+      }}
 
     let allInstitutions=await query
 
