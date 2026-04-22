@@ -55,13 +55,13 @@ function buildPDF(title, columns, rows) {
     // Dynamic weight distribution
     const getColumnWeight = (header) => {
       const lower = header.toLowerCase();
-      if (lower === '#') return 0.5;
-      if (lower.includes('qty') || lower.includes('quantity')) return 1.2;
-      if (lower === 'unit') return 1;
-      if (lower.includes('status')) return 1.5;
-      if (lower.includes('priority')) return 1.2;
-      if (lower.includes('date') || lower.includes('created') || lower.includes('expires') || lower.includes('at') || lower.includes('joined')) return 1.8;
-      if (lower.includes('donor') || lower.includes('institution') || lower.includes('medicine') || lower.includes('email') || lower.includes('name')) return 3;
+      if (lower === '#') return 0.8;
+      if (lower.includes('qty') || lower.includes('quantity')) return 1.6;
+      if (lower === 'unit') return 1.2;
+      if (lower.includes('status')) return 1.6;
+      if (lower.includes('priority')) return 1.4;
+      if (lower.includes('date') || lower.includes('created') || lower.includes('expires') || lower.includes('at') || lower.includes('joined')) return 2.0;
+      if (lower.includes('donor') || lower.includes('institution') || lower.includes('medicine') || lower.includes('email') || lower.includes('name')) return 2.8;
       return 1.5; 
     };
 
@@ -80,7 +80,7 @@ function buildPDF(title, columns, rows) {
     /* ── Table Row Drawer ── */
     const rowHeight = 28;
     const paddingY = 8;
-    const paddingX = 6;
+    const paddingX = 4; // reduced from 6 to give text more inner breathing room
 
     const drawRow = (data, isHeader = false) => {
       const startX = 40;
