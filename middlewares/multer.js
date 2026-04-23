@@ -35,7 +35,7 @@ const uploadDocuments = multer({
 })
 
 exports.uploadInstitutionLogo = uploadLogo.single('logo');
-exports.uploadInstitutionLogo = uploadLogo.single('avatar');
+exports.uploadAvatar = uploadLogo.single('avatar');
 
 
 exports.uploadInstitutionDocuments = uploadDocuments.fields([

@@ -9,7 +9,7 @@ const institutionModel = require("../models/institution.model");
 
 class AuthService {
   async register(data) {
-    const { firstName, lastName, email, phone, password } = data;
+    const { firstName, lastName, email, phone, password,role } = data;
     const existedEmail = await User.findOne({ email });
     if (existedEmail) {
       throw new ApiError("Email already in use", 400);
@@ -146,6 +146,10 @@ class AuthService {
     if (!user) {
       throw new ApiError("Invalid email or password", 400);
     }
+    //Prevent login before email verification
+    if (!user.isVerified) {
+       throw new ApiError("Email not verified. Please check your inbox.",403)
+      }
     if (user.isLocked) {
       throw new ApiError("Account is locked due to multiple failed login attempts. Please try again later.", 403);
     }
