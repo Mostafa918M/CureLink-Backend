@@ -1,7 +1,7 @@
 const express = require('express');
 const { authenticate } = require('../middlewares/auth');
 const userController = require('../controllers/user.controller');
-const { uploadInstitutionLogo } = require('../middlewares/multer');
+const { uploadAvatar } = require('../middlewares/multer');
 const userValidator = require('../validators/user.validator');
  const router = express.Router();
 
@@ -9,7 +9,7 @@ const userValidator = require('../validators/user.validator');
 router.get('/profile',authenticate,userController.getOne);    // Get current user profile
 router.patch('/profile',authenticate,userValidator.updateProfile,userController.update);   //Update current user profile
 
-router.post('/upload-avatar',authenticate ,uploadInstitutionLogo, userController.uploadPicture);   //Upload profile picture
+router.post('/upload-avatar',authenticate ,uploadAvatar, userController.uploadPicture);   //Upload profile picture
 router.delete('/avatar',authenticate, userController.delete);      //Delete profile picture
 
 router.patch('/change-password',authenticate,userValidator.changePassword,userController.changePassword)
