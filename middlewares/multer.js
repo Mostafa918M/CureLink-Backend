@@ -35,6 +35,9 @@ const uploadDocuments = multer({
 })
 
 exports.uploadInstitutionLogo = uploadLogo.single('logo');
+exports.uploadInstitutionLogo = uploadLogo.single('avatar');
+
+
 exports.uploadInstitutionDocuments = uploadDocuments.fields([
   { name: 'commercial_register',     maxCount: 1 },
   { name: 'tax_card',                maxCount: 1 },
