@@ -79,7 +79,7 @@
  *     description: |
  *       Returns a paginated list of requests.
  *       - **Institution**: sees only its own requests
- *       - **Admin / Superadmin**: sees all requests
+ *       - **Donor / Admin / Superadmin**: sees all requests
  *
  *       Supports filtering by `status`, `priority`, and full-text search on `medicineName`.
  *     tags: [Requests]
@@ -133,8 +133,6 @@
  *               $ref: '#/components/schemas/RequestsListResponse'
  *       401:
  *         description: Not authenticated
- *       403:
- *         description: Access denied
  *       500:
  *         description: Server error
  */
@@ -402,8 +400,6 @@
  *         description: Invalid request ID format
  *       401:
  *         description: Not authenticated
- *       403:
- *         description: Access denied — institution / admin / superadmin only
  *       404:
  *         description: Request not found
  *       500:

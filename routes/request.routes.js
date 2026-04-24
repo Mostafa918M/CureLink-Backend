@@ -15,14 +15,13 @@ router.get('/statistics', requestController.getStats);
 router.get(
   '/:id/matches',
   requestValidator.idParam,
-  authorize('institution', 'admin', 'superadmin'),
   requestController.getMatches
 );
 
 router
   .route('/')
   .post(authorize('institution'), requireVerifiedInstitution, requestValidator.create, requestController.create)
-  .get(authorize('institution', 'admin', 'superadmin'), requestController.getAll);
+  .get(requestController.getAll);
 
 router
   .route('/:id')
