@@ -90,6 +90,51 @@ const authValidator = {
       .normalizeEmail(),
     handleValidationErrors,
   ],
+
+  forgotPassword: [
+    body("email")
+      .notEmpty()
+      .withMessage("Email is required")
+      .isEmail()
+      .withMessage("Please provide a valid email")
+      .normalizeEmail(),
+    handleValidationErrors,
+  ],
+
+  verifyResetOTP: [
+    body("email")
+      .notEmpty()
+      .withMessage("Email is required")
+      .isEmail()
+      .withMessage("Please provide a valid email")
+      .normalizeEmail(),
+    body("otp")
+      .notEmpty()
+      .withMessage("OTP is required")
+      .isLength({ min: 6, max: 6 })
+      .withMessage("OTP must be 6 digits"),
+    handleValidationErrors,
+  ],
+
+  resetPassword: [
+    body("email")
+      .notEmpty()
+      .withMessage("Email is required")
+      .isEmail()
+      .withMessage("Please provide a valid email")
+      .normalizeEmail(),
+    body("otp")
+      .notEmpty()
+      .withMessage("OTP is required")
+      .isLength({ min: 6, max: 6 })
+      .withMessage("OTP must be 6 digits"),
+    body("password")
+      .notEmpty()
+      .withMessage("New password is required")
+      .isLength({ min: 8 })
+      .withMessage("Password must be at least 8 characters"),
+    handleValidationErrors,
+  ],
 };
 
 module.exports = authValidator;

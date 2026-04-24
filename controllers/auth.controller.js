@@ -134,6 +134,49 @@ class AuthController {
       result
     );
   }
+
+  async forgotPassword(req, res) {
+    const { email } = req.body;
+    const result = await AuthService.forgotPassword(email);
+    return sendResponse(
+      res,
+      200,
+      "success",
+      "Password reset OTP sent to email",
+      result
+    );
+  }
+
+  async verifyResetOTP(req, res) {
+    const payload = {
+      email: req.body.email,
+      otp: req.body.otp,
+    };
+    const result = await AuthService.verifyResetOTP(payload);
+    return sendResponse(
+      res,
+      200,
+      "success",
+      "OTP verified successfully",
+      result
+    );
+  }
+
+  async resetPassword(req, res) {
+    const payload = {
+      email: req.body.email,
+      otp: req.body.otp,
+      password: req.body.password,
+    };
+    const result = await AuthService.resetPassword(payload);
+    return sendResponse(
+      res,
+      200,
+      "success",
+      "Password reset successfully",
+      result
+    );
+  }
 }
 
 const controller = new AuthController();
@@ -147,4 +190,7 @@ module.exports = {
   logout: asyncErrorHandler(controller.logout.bind(controller)),
   logoutAll: asyncErrorHandler(controller.logoutAll.bind(controller)),
   getMe: asyncErrorHandler(controller.getMe.bind(controller)),
+  forgotPassword: asyncErrorHandler(controller.forgotPassword.bind(controller)),
+  verifyResetOTP: asyncErrorHandler(controller.verifyResetOTP.bind(controller)),
+  resetPassword: asyncErrorHandler(controller.resetPassword.bind(controller)),
 };

@@ -6,21 +6,20 @@ const router = express.Router();
 
 
 
-router.get('/:id', authenticate ,notificationValidator.validateObjectId,notificationController.getOne);     //Get single notification
-router.get('/', authenticate ,notificationController.getAll);   //Get user's notifications
+router.get('/:id', authenticate ,notificationValidator.validateObjectId,notificationController.getOne);    
+router.get('/', authenticate ,notificationController.getAll);   
 
-router.patch('/:id/read',authenticate ,notificationValidator.validateObjectId,notificationController.markOneAsRead);   //Mark notification as read
-router.patch('/read-all',authenticate , notificationController.markAllAsRead);   //Mark all as read
+router.patch('/:id/read',authenticate ,notificationValidator.validateObjectId,notificationController.markOneAsRead);   
+router.patch('/read-all',authenticate , notificationController.markAllAsRead);   
 
-router.get('/unread-count', authenticate ,notificationController.unreadCountNotification);     //Get unread count
+router.get('/unread-count', authenticate ,notificationController.unreadCountNotification);   
 
 
-router.delete('/:id', authenticate, authorize("superadmin","admin"),notificationValidator.validateObjectId,notificationController.deleteOne);     //Delete notification
-router.delete('/:userID', authenticate, authorize("superadmin","admin"),notificationValidator.validateObjectId,notificationController.deleteAll);       //Delete all notifications for each user
+router.delete('/:id', authenticate, authorize("superadmin","admin"),notificationValidator.validateObjectId,notificationController.deleteOne);    
+router.delete('/:userID', authenticate, authorize("superadmin","admin"),notificationValidator.validateObjectId,notificationController.deleteAll);       
 
-router.get('/deleted', authenticate, authorize("superadmin","admin"),notificationController.getAllDeleted)  ///get all admin's deleted notification 
+router.get('/deleted', authenticate, authorize("superadmin","admin"),notificationController.getAllDeleted)  
 router.patch('/restore/:id',authenticate, authorize("superadmin","admin"),notificationController.restoreOneNotification)   
-// Restore a single notification => Admin can restore only notifications they deleted && Superadmin can restore any deleted notification
 
 
 module.exports = router;

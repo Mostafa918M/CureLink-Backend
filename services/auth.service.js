@@ -252,6 +252,60 @@ class AuthService {
       }
     };
   }
+
+  async forgotPassword(email) {
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new ApiError("User with this email does not exist", 404);
+    }
+
+    const otp = generateOTP();
+    user.resetPasswordOTP = otp;
+    user.resetPasswordOTPExpires = new Date(Date.now() + 10 * 60 * 1000); 
+    await user.save();
+
+    const mailSent = await mailer.sendForgotPassword(user, otp);
+    if (!mailSent) {
+      throw new ApiError("Failed to send reset password email", 500);
+    }
+
+    return { message: "OTP sent to email successfully" };
+  }
+
+  async verifyResetOTP(data) {
+    const { email, otp } = data;
+    const user = await User.findOne({
+      email,
+      resetPasswordOTP: otp,
+      resetPasswordOTPExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      throw new ApiError("Invalid or expired OTP", 400);
+    }
+
+    return { message: "OTP verified successfully" };
+  }
+
+  async resetPassword(data) {
+    const { email, otp, password } = data;
+    const user = await User.findOne({
+      email,
+      resetPasswordOTP: otp,
+      resetPasswordOTPExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      throw new ApiError("Invalid or expired OTP", 400);
+    }
+
+    user.password = password;
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordOTPExpires = undefined;
+    await user.save();
+
+    return { message: "Password reset successfully" };
+  }
 }
 
 module.exports = new AuthService();

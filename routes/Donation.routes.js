@@ -1,7 +1,7 @@
 const express = require('express');
 
 const { uploadDonationImages } = require('../middlewares/upload');
-const donationController = require('../controllers/Donation.controller');
+const donationController = require('../controllers/donation.controller');
 const { authenticate, authorize } = require('../middlewares/auth');
 const DonationValidator = require('../validators/donation.validation');
 
