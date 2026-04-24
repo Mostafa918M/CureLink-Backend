@@ -9,8 +9,8 @@
  * @swagger
  * /api/v1/donations:
  *   get:
- *     summary: Get all donations (Admin/Institution only)
- *     description: Retrieve a paginated list of all donations. Access is restricted to admins, superadmins, and institutions.
+ *     summary: Get all donations
+ *     description: Retrieve a paginated list of all donations.
  *     tags: [Donations]
  *     security:
  *       - bearerAuth: []
@@ -36,8 +36,6 @@
  *               $ref: '#/components/schemas/DonationsListResponse'
  *       401:
  *         description: Unauthorized
- *       403:
- *         description: Access denied (Admin/Institution only)
  *       500:
  *         description: Server error
  */

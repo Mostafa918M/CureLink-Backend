@@ -9,7 +9,9 @@ const router = express.Router();
 
 router.use(authenticate);
 
-router.get('/', authorize('admin', 'superadmin', 'institution'), donationController.getAll);
+router.get('/', donationController.getAll);
+
+router.get('/my-donations', donationController.getMyDonations);
 
 router.get('/:id', authorize('admin', 'superadmin', 'institution'), donationController.getOne);
 

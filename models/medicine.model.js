@@ -51,13 +51,6 @@ const medicineSchema = new mongoose.Schema(
       default: false,
     },
 
-    status: {
-      type: String,
-      enum: ['pending', 'approved', 'rejected'],
-      default: 'pending',
-      index: true,
-    },
-
     verification: {
       verifiedBy: {
         type: mongoose.Schema.Types.ObjectId,

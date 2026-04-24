@@ -26,12 +26,10 @@ class AuthService {
       email,
       phone,
       password,
-      role,
       otp,
       otpExpiry,
     });
 
-    const accessToken = TokenUtils.generateAccessToken(user._id, user.role);
 
     mailer.sendVerificationOTP(user, otp).catch(err => console.error('Failed to send registration email:', err));
 
@@ -44,7 +42,6 @@ class AuthService {
         phone: user.phone,
         role: user.role,
         isVerified: user.isVerified,
-        accessToken
       },
     };
   }
@@ -143,10 +140,17 @@ class AuthService {
     // Find the User by Email
     const user = await User.findOne({ email }).select("+password");
     // console.log(user);
-
+    const isVerified = user ? user.isVerified : false;
+    if(!isVerified){
+      throw new ApiError("Email not verified. Please verify your email before logging in.", 403);
+    }
     if (!user) {
       throw new ApiError("Invalid email or password", 400);
     }
+    //Prevent login before email verification
+    if (!user.isVerified) {
+       throw new ApiError("Email not verified. Please check your inbox.",403)
+      }
     if (user.isLocked) {
       throw new ApiError("Account is locked due to multiple failed login attempts. Please try again later.", 403);
     }
@@ -172,10 +176,7 @@ class AuthService {
       if (!institution) {
         throw new ApiError("Institution profile not found", 404);
       }
-      institutionStatus=institution.verificationStatus
-      if(institutionStatus !== "verified"){
-        throw new ApiError( `Your institution is ${institution.verificationStatus}. Please wait for admin approval.`, 403)
-      }
+
     }
 
     user.lastLogin = Date.now();

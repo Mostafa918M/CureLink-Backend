@@ -64,7 +64,6 @@ class donationService {
           strength: medData.strength || undefined,
           dosageForm: dosageForm,
           createdBy: userId,
-          status: 'pending',
         });
       }
 
