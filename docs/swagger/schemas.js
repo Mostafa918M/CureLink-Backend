@@ -168,9 +168,6 @@
  *           enum: [tablet, capsule, syrup, injection, cream, drops, other]
  *         category:
  *           type: string
- *         status:
- *           type: string
- *           enum: [pending, approved, rejected]
  *
  *     Donation:
  *       type: object

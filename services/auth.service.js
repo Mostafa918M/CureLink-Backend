@@ -30,7 +30,6 @@ class AuthService {
       otpExpiry,
     });
 
-    const accessToken = TokenUtils.generateAccessToken(user._id, user.role);
 
     mailer.sendVerificationOTP(user, otp).catch(err => console.error('Failed to send registration email:', err));
 
@@ -43,7 +42,6 @@ class AuthService {
         phone: user.phone,
         role: user.role,
         isVerified: user.isVerified,
-        accessToken
       },
     };
   }
@@ -142,7 +140,10 @@ class AuthService {
     // Find the User by Email
     const user = await User.findOne({ email }).select("+password");
     // console.log(user);
-
+    const isVerified = user ? user.isVerified : false;
+    if(!isVerified){
+      throw new ApiError("Email not verified. Please verify your email before logging in.", 403);
+    }
     if (!user) {
       throw new ApiError("Invalid email or password", 400);
     }
