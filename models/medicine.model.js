@@ -88,6 +88,7 @@ medicineSchema.index({
   name: 'text',
   genericName: 'text',
   manufacturer: 'text',
+  dosageForm: 'text'
 });
 
 module.exports = mongoose.model('Medicine', medicineSchema);

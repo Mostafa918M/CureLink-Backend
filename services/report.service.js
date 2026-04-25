@@ -421,7 +421,7 @@ exports.generateRequestReport = async ({ format, startDate, endDate, status, pri
  */
 exports.generateMatchingReport = async ({ format, startDate, endDate }, userId) => {
   const match = {
-    status:    { $in: ['matched', 'approved_by_institution', 'delivered'] },
+    status:    { $in: ['matched', 'approved', 'delivered'] },
     deletedAt: { $exists: false },
     ...dateRangeFilter('matchedAt', startDate, endDate),
   };

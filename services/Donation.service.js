@@ -138,14 +138,21 @@ class donationService {
     const limit = parseInt(query.limit, 10) || 10;
     const skip = (page - 1) * limit;
 
-    const donations = await Donation.find()
+    const filter={
+      status:{$in: ["approved", "available"]},
+      deletedAt: null,
+      expiryDate: {$gt: new Date()}
+    }
+
+    const donations = await Donation.find(filter).select("-statusHistory")
       .populate('donor', 'firstName lastName email phone')
       .populate('medicine', 'name strength dosageForm category')
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    const total = await Donation.countDocuments();
+    const total = await Donation.countDocuments(filter);
 
     return {
       donations,

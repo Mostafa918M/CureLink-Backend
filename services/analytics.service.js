@@ -462,7 +462,7 @@ async function getMatchingAnalytics() {
       $group: {
         _id:     null,
         total:   { $sum: 1 },
-        matched: { $sum: { $cond: [{ $in: ['$status', ['matched', 'approved_by_institution', 'delivered']] }, 1, 0] } },
+        matched: { $sum: { $cond: [{ $in: ['$status', ['matched', 'approved', 'delivered']] }, 1, 0] } },
         delivered: { $sum: { $cond: [{ $eq: ['$status', 'delivered'] }, 1, 0] } },
         unmatched: { $sum: { $cond: [{ $in: ['$status', ['pending', 'admin_review', 'available']] }, 1, 0] } },
       },

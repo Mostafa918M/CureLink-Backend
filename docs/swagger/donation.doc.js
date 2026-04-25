@@ -9,8 +9,8 @@
  * @swagger
  * /api/v1/donations:
  *   get:
- *     summary: Get all donations (Admin/Institution only)
- *     description: Retrieve a paginated list of all donations. Access is restricted to admins, superadmins, and institutions.
+ *     summary: Get only approved donations (Institution)
+ *     description: Retrieve a paginated list of all approved donations and show it in browse page. Access is restricted to institutions.
  *     tags: [Donations]
  *     security:
  *       - bearerAuth: []

@@ -198,7 +198,7 @@
  *           format: date
  *         status:
  *           type: string
- *           enum: [pending, admin_review, available, matched, approved_by_institution, delivered, rejected, expired, cancelled]
+ *           enum: [pending, admin_review, available, matched, approved, delivered, rejected, expired, cancelled]
  *         priority:
  *           type: string
  *           enum: [low, medium, high]

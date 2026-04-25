@@ -27,7 +27,7 @@ const endDateRule = body('endDate')
 /* Donation status values from the model */
 const donationStatusRule = body('status')
   .optional()
-  .isIn(['pending', 'admin_review', 'available', 'matched', 'approved_by_institution', 'delivered', 'rejected', 'expired', 'cancelled'])
+  .isIn(['pending', 'admin_review', 'available', 'matched', ' approved', 'delivered', 'rejected', 'expired', 'cancelled'])
   .withMessage('Invalid donation status');
 
 /* Request status values from the model */

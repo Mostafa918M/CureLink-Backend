@@ -61,7 +61,7 @@ const donationSchema = new mongoose.Schema(
         'admin_review',
         'available',
         'matched',
-        'approved_by_institution',
+        'approved',
         'delivered',
         'rejected',
         'expired',

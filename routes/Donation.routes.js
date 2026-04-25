@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.use(authenticate);
 
-router.get('/', authorize('admin', 'superadmin', 'institution'), donationController.getAll);
+router.get('/', authorize('admin', 'superadmin', 'institution'), donationController.getAll);  //get only approved donations for institution and show it in browse page
 
 router.get('/my-donations', donationController.getMyDonations);
 

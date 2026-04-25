@@ -30,7 +30,7 @@ class AuthService {
       otpExpiry,
     });
 
-    const accessToken = TokenUtils.generateAccessToken(user._id, user.role);
+    // const accessToken = TokenUtils.generateAccessToken(user._id, user.role);
 
     mailer.sendVerificationOTP(user, otp).catch(err => console.error('Failed to send registration email:', err));
 
@@ -43,7 +43,7 @@ class AuthService {
         phone: user.phone,
         role: user.role,
         isVerified: user.isVerified,
-        accessToken
+        // accessToken
       },
     };
   }

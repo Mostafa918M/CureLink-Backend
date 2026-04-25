@@ -1,5 +1,7 @@
 require('dotenv').config();
 const express = require('express');
+
+const searchRoutes = require('./routes/search.routes');
 const cookieParser = require('cookie-parser');
 const { globalError, handleNotFound } = require('./middlewares/globalErrorHandler');
 
@@ -42,6 +44,8 @@ app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/admin/dashboard', adminDashboardRoutes);
 app.use('/api/v1/admin/users', adminUserRoutes);
+app.use('/api/v1/search', searchRoutes);
+
 app.use(handleNotFound);
 app.use(globalError);
 

@@ -13,7 +13,7 @@ exports.getStats = async () => {
         User.countDocuments(),
         Donation.countDocuments({ status: { $in: ['pending', 'admin_review', 'available'] } }),
         Request.countDocuments({ status: 'open' }),
-        Donation.countDocuments({ status: { $in: ['matched', 'approved_by_institution', 'delivered'] } })
+        Donation.countDocuments({ status: { $in: ['matched', 'approved', 'delivered'] } })
     ]);
 
     return {
