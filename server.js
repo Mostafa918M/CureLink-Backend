@@ -6,6 +6,8 @@ const connectDB = require('./config/database');
 
 // console.log('MONGO_URI:', process.env.MONGO_URI);
 connectDB();
+const jobsService = require('./services/jobs.service');
+jobsService.init();
 
 const PORT = process.env.PORT || 3000;
 

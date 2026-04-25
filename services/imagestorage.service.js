@@ -6,12 +6,11 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-
-class ImagestorageService {
-  async uploadImage(fileBuffer, folder, resourceType="auto") {
+class ImageStorageService {
+  async uploadImage(fileBuffer) {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
-        .upload_stream({folder , resource_type : resourceType }, (error, result) => {
+        .upload_stream({ folder: 'medicine-donations' }, (error, result) => {
           if (error) return reject(error);
           resolve({
             url: result.secure_url,
@@ -30,7 +29,6 @@ class ImagestorageService {
       });
     });
   }
-
 }
 
-module.exports = new ImagestorageService();
+module.exports = new ImageStorageService();

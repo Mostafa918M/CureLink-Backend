@@ -18,7 +18,7 @@ const InstitutionSchema = new mongoose.Schema({
 
     type: {
         type: String,
-        enum: ["hospital", "pharmacy", "clinic", "charity","medical_center", "ngo","other"],
+        enum: ["hospital","free_clinic","research_center", "pharmacy", "clinic", "charity","medical_center", "ngo","other"],
         required: [true, "Institution type is required"],
     },
 

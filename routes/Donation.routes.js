@@ -1,7 +1,7 @@
 const express = require('express');
 
 const { uploadDonationImages } = require('../middlewares/upload');
-const donationController = require('../controllers/Donation.controller');
+const donationController = require('../controllers/donation.controller');
 const { authenticate, authorize } = require('../middlewares/auth');
 const DonationValidator = require('../validators/donation.validation');
 
@@ -9,7 +9,11 @@ const router = express.Router();
 
 router.use(authenticate);
 
+
 router.get('/', authorize('admin', 'superadmin', 'institution'), donationController.getAll);  //get only approved donations for institution and show it in browse page
+
+router.get('/', donationController.getAll);
+
 
 router.get('/my-donations', donationController.getMyDonations);
 

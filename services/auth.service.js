@@ -30,7 +30,7 @@ class AuthService {
       otpExpiry,
     });
 
-    // const accessToken = TokenUtils.generateAccessToken(user._id, user.role);
+
 
     mailer.sendVerificationOTP(user, otp).catch(err => console.error('Failed to send registration email:', err));
 
@@ -142,10 +142,14 @@ class AuthService {
     // Find the User by Email
     const user = await User.findOne({ email }).select("+password");
     // console.log(user);
-
     if (!user) {
       throw new ApiError("Invalid email or password", 400);
     }
+
+     if (!user.isActive) {
+      throw new ApiError("Account is deactivated. Please contact support.", 403);
+    }
+    
     //Prevent login before email verification
     if (!user.isVerified) {
        throw new ApiError("Email not verified. Please check your inbox.",403)
@@ -153,9 +157,7 @@ class AuthService {
     if (user.isLocked) {
       throw new ApiError("Account is locked due to multiple failed login attempts. Please try again later.", 403);
     }
-    if (!user.isActive) {
-      throw new ApiError("Account is deactivated. Please contact support.", 403);
-    }
+    
 
     // check password
     const isMatch = await user.comparePassword(password);
@@ -168,14 +170,12 @@ class AuthService {
     }
 
 
-    //check institution approval
-    let institutionStatus = null;
+    //check institution approval if not approved continue as a donor
     if(user.role==="institution"){
       const institution=await institutionModel.findOne({user:user._id})
       if (!institution) {
         throw new ApiError("Institution profile not found", 404);
       }
-
     }
 
     user.lastLogin = Date.now();
@@ -199,7 +199,6 @@ class AuthService {
         role: user.role,
         isVerified: user.isVerified,
       },
-      ...(institutionStatus && { institutionStatus }) 
     };
   }
 
@@ -251,6 +250,60 @@ class AuthService {
         isVerified: user.isVerified,
       }
     };
+  }
+
+  async forgotPassword(email) {
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new ApiError("User with this email does not exist", 404);
+    }
+
+    const otp = generateOTP();
+    user.resetPasswordOTP = otp;
+    user.resetPasswordOTPExpires = new Date(Date.now() + 10 * 60 * 1000); 
+    await user.save();
+
+    const mailSent = await mailer.sendForgotPassword(user, otp);
+    if (!mailSent) {
+      throw new ApiError("Failed to send reset password email", 500);
+    }
+
+    return { message: "OTP sent to email successfully" };
+  }
+
+  async verifyResetOTP(data) {
+    const { email, otp } = data;
+    const user = await User.findOne({
+      email,
+      resetPasswordOTP: otp,
+      resetPasswordOTPExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      throw new ApiError("Invalid or expired OTP", 400);
+    }
+
+    return { message: "OTP verified successfully" };
+  }
+
+  async resetPassword(data) {
+    const { email, otp, password } = data;
+    const user = await User.findOne({
+      email,
+      resetPasswordOTP: otp,
+      resetPasswordOTPExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      throw new ApiError("Invalid or expired OTP", 400);
+    }
+
+    user.password = password;
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordOTPExpires = undefined;
+    await user.save();
+
+    return { message: "Password reset successfully" };
   }
 }
 

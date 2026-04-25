@@ -168,9 +168,6 @@
  *           enum: [tablet, capsule, syrup, injection, cream, drops, other]
  *         category:
  *           type: string
- *         status:
- *           type: string
- *           enum: [pending, approved, rejected]
  *
  *     Donation:
  *       type: object
@@ -797,6 +794,45 @@
  *         newPassword:
  *           type: string
  *           example: NewPass123
+ *
+ *     ForgotPasswordInput:
+ *       type: object
+ *       required: [email]
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's registered email address
+ *
+ *     VerifyResetOTPInput:
+ *       type: object
+ *       required: [email, otp]
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address
+ *         otp:
+ *           type: string
+ *           description: 6-digit password reset OTP
+ *           example: "123456"
+ *
+ *     ResetPasswordInput:
+ *       type: object
+ *       required: [email, otp, password]
+ *       properties:
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address
+ *         otp:
+ *           type: string
+ *           description: 6-digit password reset OTP
+ *           example: "123456"
+ *         password:
+ *           type: string
+ *           format: password
+ *           description: New password (min 8 characters)
  *
  *     Session:
  *       type: object

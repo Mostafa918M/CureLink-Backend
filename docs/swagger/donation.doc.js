@@ -11,6 +11,9 @@
  *   get:
  *     summary: Get only approved donations (Institution)
  *     description: Retrieve a paginated list of all approved donations and show it in browse page. Access is restricted to institutions.
+
+ *     summary: Get all donations
+ *     description: Retrieve a paginated list of all donations.
  *     tags: [Donations]
  *     security:
  *       - bearerAuth: []
@@ -36,8 +39,6 @@
  *               $ref: '#/components/schemas/DonationsListResponse'
  *       401:
  *         description: Unauthorized
- *       403:
- *         description: Access denied (Admin/Institution only)
  *       500:
  *         description: Server error
  */

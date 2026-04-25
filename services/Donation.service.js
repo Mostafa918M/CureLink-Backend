@@ -64,7 +64,6 @@ class donationService {
           strength: medData.strength || undefined,
           dosageForm: dosageForm,
           createdBy: userId,
-          status: 'pending',
         });
       }
 
@@ -282,6 +281,30 @@ class donationService {
     }
 
     await donation.deleteOne();
+  }
+
+  async autoCheckExpirations() {
+    const now = new Date();
+    const result = await Donation.updateMany(
+      {
+        expiryDate: { $lt: now },
+        status: { $nin: ['expired', 'delivered', 'rejected', 'cancelled', 'deleted'] },
+      },
+      {
+        $set: {
+          status: 'expired',
+          isExpiredAutoFlagged: true,
+        },
+        $push: {
+          statusHistory: {
+            status: 'expired',
+            notes: 'Automatically flagged as expired by system',
+            timestamp: now,
+          },
+        },
+      }
+    );
+    return result;
   }
 }
 

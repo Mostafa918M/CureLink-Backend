@@ -55,6 +55,8 @@ const userSchema = new mongoose.Schema({
         maxLength: [6, "OTP must be 6 digits"],
     },
     otpExpiry: Date,
+    resetPasswordOTP: String,
+    resetPasswordOTPExpires: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
     isActive: {
