@@ -251,23 +251,11 @@ class InstitutionService {
       }
       
     for(const file of filesArray){
-      if(file!=="other"){
-        const existDoc=await institutionDocs.findOne({
-          institution:institutionID,
-          type:fieldName
-        })
-
-        if(existDoc){
-          await institutionDocs.deleteOne({_id:existDoc._})
-        }
-      }
-        const uploaded=await uploadImage(file.buffer,"institutions/documents")
-
-        const doc=await institutionDocs.create({
-          institution:institutionID,
-          type:fieldName,
-          file:uploaded.url
-        })
+      const uploaded=await uploadImage(file.buffer,"institutions/documents")
+      const doc=await institutionDocs.findOneAndUpdate(
+        {institution:institutionID,type:fieldName},
+        {file:uploaded.url},
+        {new: true,upsert: true})
 
         saved_doc.push(doc)
     }
@@ -281,8 +269,9 @@ class InstitutionService {
   //  }
 
   const allRequiredUploaded=isUploaded.every(d=>d.uploaded)
+  let hasUploadedFiles=saved_doc.length > 0
 
-  if(allRequiredUploaded && existingInstitution.verificationStatus=="pending"){
+  if(hasUploadedFiles && existingInstitution.verificationStatus=="pending"){
         existingInstitution.verificationStatus = "under_review"
         await existingInstitution.save()
   }

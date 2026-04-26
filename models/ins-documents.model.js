@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { REQUIRED_DOCUMENTS_BY_TYPE } = require("../config/documentRules");
+const ApiError = require('../utils/apiError');
 
 const InstitutionDocumentSchema = new mongoose.Schema({
   institution: {

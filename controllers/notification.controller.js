@@ -44,8 +44,8 @@ class NotificationController {
       res, 
       200, 
       "success", 
-      "Notification marked as read", 
-      notification);
+      notification.message, 
+      notification.notification);
   }
 
 
@@ -57,7 +57,8 @@ class NotificationController {
       200, 
       "success", 
       updatedCount.message, 
-      updatedCount.updatedCount);
+      {updatedCount:updatedCount.updatedCount},
+    );
   }
 
 
@@ -68,8 +69,9 @@ class NotificationController {
       res, 
       200, 
       "success", 
-      "Unreaded notifications count", 
-      {unreadCount});
+      unreadCount.allRead ? "All notifications are read" : "Unread notifications fetched successfully",
+      {unread_notifications:unreadCount.notificationsCount}
+      );
   }
 
   async deleteOne(req, res) {

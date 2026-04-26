@@ -10,10 +10,8 @@
  * /api/v1/donations:
  *   get:
  *     summary: Get only approved donations (Institution)
- *     description: Retrieve a paginated list of all approved donations and show it in browse page. Access is restricted to institutions.
+ *     description: Retrieve a paginated list of all approved donations and show it in browse page. Access is restricted to institutions,admin and super admin.
 
- *     summary: Get all donations
- *     description: Retrieve a paginated list of all donations.
  *     tags: [Donations]
  *     security:
  *       - bearerAuth: []

@@ -171,11 +171,17 @@ class AuthService {
 
 
     //check institution approval if not approved continue as a donor
+    let institutionData = null
     if(user.role==="institution"){
       const institution=await institutionModel.findOne({user:user._id})
       if (!institution) {
         throw new ApiError("Institution profile not found", 404);
       }
+
+      institutionData = {
+      verificationStatus: institution.verificationStatus
+    }
+
     }
 
     user.lastLogin = Date.now();
@@ -199,6 +205,7 @@ class AuthService {
         role: user.role,
         isVerified: user.isVerified,
       },
+      institution:institutionData
     };
   }
 

@@ -81,16 +81,25 @@ class NotificationService {
 
   
   async updateReadOne(notificationId, userId) {
-    const notification=await Notification.findOneAndUpdate(
-      {_id:notificationId,user:userId,isRead: false,isDeleted:false },
-      {isRead:true},
-      { new: true }
-    )
+    const notification=await Notification.findOne({_id:notificationId,user:userId,isDeleted:false })
 
     if (!notification) {
       throw new ApiError('notification not found',404);
     }
-    return  notification
+    
+    if(notification.isRead){
+      return{
+        notification,
+        message:"Notification is already marked as read"
+      }
+    }
+
+    notification.isRead=true
+    await notification.save()
+    return  {
+      notification,
+      message:"Notification marked as read successfully"
+    }
   }
 
 
@@ -98,8 +107,7 @@ class NotificationService {
   async updateReadMany(userId) {
     const notifications=await Notification.updateMany(
       {user:userId,isRead: false,isDeleted:false },
-      {isRead:true},
-      { new: true }
+      {$set:{isRead:true}},
     )
 
     if (!notifications) {
@@ -110,7 +118,7 @@ class NotificationService {
       updatedCount: notifications.modifiedCount,
       message:notifications.modifiedCount >0 ? 
       "All notifications marked as read"
-      :"No notifications found to read"  
+      :"All notifications are already read"  
     } 
   }
 
@@ -122,7 +130,10 @@ class NotificationService {
       isDeleted:false
     })
 
-    return notificationsCount
+    return {
+      notificationsCount,
+      allRead:notificationsCount === 0
+    }
   }
 
 
