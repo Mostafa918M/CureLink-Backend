@@ -267,11 +267,6 @@ class InstitutionService {
   const allRequiredUploaded=isUploaded.every(d=>d.uploaded)
   let hasUploadedFiles=saved_doc.length > 0
 
-  if(hasUploadedFiles && existingInstitution.verificationStatus=="pending"){
-        existingInstitution.verificationStatus = "under_review"
-        await existingInstitution.save()
-  }
-
 
   //send notifcation from system to admins for review new pending institution
     const admins=await user.find({role:"admin",isActive:true}).select("_id")

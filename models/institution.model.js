@@ -79,7 +79,7 @@ const InstitutionSchema = new mongoose.Schema({
 
     verificationStatus: {
       type: String,
-      enum: ["pending", "under_review", "verified", "rejected"],
+      enum: ["pending", "verified", "rejected"],
       default: "pending",
     },
 
