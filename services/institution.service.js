@@ -25,10 +25,7 @@ class InstitutionService {
     if(logo){
       uploadLogo=await uploadImage(logo,"institutions/logo")
     }
-    const role = await user.updateOne(
-      { _id: owner },
-      { $set: { role: "institution" } }
-    );
+
     const institution=await Institution.create({
       user:owner,
       name,
@@ -40,12 +37,12 @@ class InstitutionService {
       logoPublicId:uploadLogo? uploadLogo.publicId : null
     })
 
-    // const populated=await Institution.findById(institution._id)
-    // .populate({
-    //   path:"user",
-    //   select:"firstName lastName email phone createdAt"
-    // })
-    // .lean()
+    const populated=await Institution.findById(institution._id)
+    .populate({
+      path:"user",
+      select:"firstName lastName email phone createdAt role"
+    })
+    .lean()
 
     return {
       institutionData:{
@@ -56,9 +53,8 @@ class InstitutionService {
         description: institution.description,
         addresses: institution.addresses,
         logo: institution.logo,
-        owner:institution.user,
-        status : institution.verificationStatus
-        // owner:populated.user
+        status : institution.verificationStatus,
+        owner:populated.user
       }
     }
   }

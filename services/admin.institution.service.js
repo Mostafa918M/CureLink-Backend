@@ -74,7 +74,7 @@ class AdminInstitutionService {
         //send notification from admin to institution if institution approved
         try{
             await notificationService.createNotification({
-                userId:institution._id,
+                userId:institution.user,
                 type:"institution_approved"
             })
         }catch(err){
@@ -98,7 +98,7 @@ class AdminInstitutionService {
         //send notification from admin to institution if institution rejected
          try{
             await notificationService.createNotification({
-                userId:institution._id,
+                userId:institution.user,
                 type:"institution_rejected",
                 data:{rejectionReason:institution.rejectionReason}
             })
