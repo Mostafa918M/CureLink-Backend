@@ -270,6 +270,8 @@ class InstitutionService {
 
   //send notifcation from system to admins for review new pending institution
     const admins=await user.find({role:"admin",isActive:true}).select("_id")
+    // console.log("admins",admins);
+    
     await Promise.all(
       admins.map(admin=>{
         return notificationService.createNotification({
