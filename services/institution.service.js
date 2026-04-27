@@ -25,10 +25,7 @@ class InstitutionService {
     if(logo){
       uploadLogo=await uploadImage(logo,"institutions/logo")
     }
-    const role = await user.updateOne(
-      { _id: owner },
-      { $set: { role: "institution" } }
-    );
+
     const institution=await Institution.create({
       user:owner,
       name,
