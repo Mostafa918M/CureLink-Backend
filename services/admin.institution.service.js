@@ -2,6 +2,8 @@ const Institution = require("../models/institution.model");
 const institutionDocs=require("../models/ins-documents.model")
 const ApiError = require("../utils/apiError");
 const notificationService = require("./notification.service");
+const User = require("../models/user.model");
+
 
 class AdminInstitutionService {
     async getAllInstitutions({ page, limit }) {
@@ -70,6 +72,8 @@ class AdminInstitutionService {
         if (!institution) {
             throw new ApiError("Institution not found", 404);
         }
+
+        await User.findByIdAndUpdate(institution.user, { role: "institution" });
 
         //send notification from admin to institution if institution approved
         try{

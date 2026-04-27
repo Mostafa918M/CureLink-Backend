@@ -21,6 +21,13 @@ exports.authenticate = asyncErrorHandler(async (req, res, next) => {
         return;
     }
 
+    if (decoded.role !== user.role) {
+        await TokenUtils.revokeAllUserTokens(user._id, req.ip);
+        res.clearCookie("accessToken");
+        res.clearCookie("refreshToken");
+        return next(new ApiError("Your role has been updated. Please login again to apply changes.", 401));
+    }
+
     req.user = user;
     req.userId = user._id;
     req.userRole = user.role;
