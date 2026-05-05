@@ -2,7 +2,7 @@ const express = require('express');
 
 const { uploadDonationImages } = require('../middlewares/upload');
 const donationController = require('../controllers/donation.controller');
-const { authenticate, authorize } = require('../middlewares/auth');
+const { authenticate, authorize, requireVerifiedInstitution } = require('../middlewares/auth');
 const DonationValidator = require('../validators/donation.validation');
 
 const router = express.Router();
@@ -10,7 +10,7 @@ const router = express.Router();
 router.use(authenticate);
 
 
-router.get('/', authorize('admin', 'superadmin', 'institution'), donationController.getAll);  //get only approved donations for institution and show it in browse page
+router.get('/', authorize('admin', 'superadmin', 'institution'),requireVerifiedInstitution ,donationController.getAll);  //get only approved donations for verified institution and show it in browse page
 
 router.get('/', donationController.getAll);
 

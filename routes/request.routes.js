@@ -5,15 +5,19 @@ const requestValidator = require('../validators/request.validator');
 
 const router = express.Router();
 
+//---------------------institutions are allowed to create requests after being verified by an admin.--------------------//
+
 // All request routes require authentication
 router.use(authenticate);
 
 // Statistics route MUST be defined before /:id to avoid being matched as an id
-router.get('/statistics', requestController.getStats);
+router.get('/statistics',authorize('institution','admin', 'superadmin'),requireVerifiedInstitution,requestController.getStats);
 
 // Matches for a specific request
 router.get(
   '/:id/matches',
+  authorize('institution','admin', 'superadmin'),
+  requireVerifiedInstitution,
   requestValidator.idParam,
   requestController.getMatches
 );
@@ -21,12 +25,12 @@ router.get(
 router
   .route('/')
   .post(authorize('institution'), requireVerifiedInstitution, requestValidator.create, requestController.create)
-  .get(requestController.getAll);
+  .get(authorize('institution','admin', 'superadmin'),requireVerifiedInstitution,requestController.getAll);
 
 router
   .route('/:id')
-  .get(requestValidator.idParam, requestController.getOne)
+  .get(authorize('institution', 'admin', 'superadmin'),requireVerifiedInstitution,requestValidator.idParam, requestController.getOne)
   .patch(authorize('institution'), requireVerifiedInstitution, requestValidator.update, requestController.update)
-  .delete(authorize('institution'), requestValidator.idParam, requestController.delete);
+  .delete(authorize('institution'),requireVerifiedInstitution ,requestValidator.idParam, requestController.delete);
 
 module.exports = router;

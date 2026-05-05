@@ -37,6 +37,10 @@ class InstitutionService {
       logoPublicId:uploadLogo? uploadLogo.publicId : null
     })
 
+    const new_role=await user.findByIdAndUpdate(owner,{role:"institution"},{ new: true })
+    console.log("user_role",new_role);
+    
+
     const populated=await Institution.findById(institution._id)
     .populate({
       path:"user",
