@@ -1,4 +1,4 @@
-// services/Donation.service.js
+// services/donation.service.js
 const AiService = require('./ai.service');
 const ImageStorageService = require('./imagestorage.service');
 const Donation = require('../models/donation.model');
