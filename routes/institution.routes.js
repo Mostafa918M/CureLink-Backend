@@ -7,12 +7,12 @@ const { uploadInstitutionDocuments, uploadInstitutionLogo } = require('../middle
 
 
 router.post('/register',authenticate,authorize("donor"),uploadInstitutionLogo,institutionValidator.register, institutionController.register);  //institution registeration if user role==institution 
-router.get('/profile',authenticate ,authorize("institution","admin","superadmin","donor"),institutionController.getProfile);    //get own intitution profile
-router.put('/profile',authenticate ,authorize("institution","donor"),uploadInstitutionLogo,institutionValidator.updateProfile, institutionController.updateProfile);  //update institution profile
+router.get('/profile',authenticate ,authorize("institution","admin","superadmin"),institutionController.getProfile);    //get own intitution profile
+router.put('/profile',authenticate ,authorize("institution"),uploadInstitutionLogo,institutionValidator.updateProfile, institutionController.updateProfile);  //update institution profile
 router.get('/', institutionController.getAllInstitutions);       //get only verified institution for public 
   
-router.post("/documents",authenticate,authorize("institution","donor"),uploadInstitutionDocuments,institutionController.postDocuments)     //upload verification documents 
-router.get("/documents",authenticate,authorize("institution","donor"),institutionController.getDocuments)      //get institution documents
+router.post("/documents",authenticate,authorize("institution"),uploadInstitutionDocuments,institutionController.postDocuments)     //upload verification documents 
+router.get("/documents",authenticate,authorize("institution"),institutionController.getDocuments)      //get institution documents
 
 router.get('/:id',institutionValidator.getOneInstitution , institutionController.getOneInstitution);     //get institution details for public
 
