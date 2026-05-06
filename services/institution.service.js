@@ -270,12 +270,26 @@ class InstitutionService {
 
   const allRequiredUploaded=isUploaded.every(d=>d.uploaded)
   let hasUploadedFiles=saved_doc.length > 0
+  let notifyAdmins = false;
 
+
+  const admins=await user.find({role:"admin",isActive:true}).select("_id")
+  // console.log("admins",admins);
+
+
+// If the institution was rejected and new documents are uploaded, its status becomes pending again
+  if(existingInstitution.verificationStatus==="rejected" && hasUploadedFiles ){
+    existingInstitution.verificationStatus="pending"
+    existingInstitution.rejectionReason=null
+    await existingInstitution.save()
+    notifyAdmins=true
+
+  }else if(existingInstitution.verificationStatus==="pending" && hasUploadedFiles){
+    notifyAdmins=true
+  }
 
   //send notifcation from system to admins for review new pending institution
-    const admins=await user.find({role:"admin",isActive:true}).select("_id")
-    // console.log("admins",admins);
-    
+  if(notifyAdmins){
     await Promise.all(
       admins.map(admin=>{
         return notificationService.createNotification({
@@ -285,12 +299,12 @@ class InstitutionService {
         })
       })
     )
-
-    //send notifcation from system to institution after registration & document upload
-    await notificationService.createNotification({
-      userId:existingInstitution.user,
-      type:"institution_under_review",
-      })
+  }    
+  //send notifcation from system to institution after registration & document upload
+  await notificationService.createNotification({
+    userId:existingInstitution.user,
+    type:"institution_under_review",
+    })
 
   return{
     AllDocuments:saved_doc,

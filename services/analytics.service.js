@@ -110,7 +110,7 @@ async function getDonationCategories() {
         as:           'medicineInfo',
       },
     },
-    { $unwind: { path: '$medicineInfo', preserveNullAndEmpty: false } },
+    { $unwind: { path: '$medicineInfo', preserveNullAndEmptyArrays: false } },
     {
       $group: {
         _id:   { $ifNull: ['$medicineInfo.category', 'Uncategorized'] },
