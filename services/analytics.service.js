@@ -125,76 +125,7 @@ async function getDonationCategories() {
   return { data };
 }
 
-/**
- * Geographic distribution of donations using the donor's institution
- * governorate from the Institution model (addresses[0].governorate).
- * Falls back to phone-prefix carrier grouping for regular donors.
- */
-async function getDonationGeographic() {
-  // Group institutions' received donations by governorate
-  const byGovernorate = await Donation.aggregate([
-    { $match: { matchedInstitution: { $exists: true } } },
-    {
-      $lookup: {
-        from:         'institutions',
-        localField:   'matchedInstitution',
-        foreignField: 'user',
-        as:           'institutionInfo',
-      },
-    },
-    { $unwind: { path: '$institutionInfo', preserveNullAndEmpty: false } },
-    { $unwind: { path: '$institutionInfo.addresses', preserveNullAndEmpty: false } },
-    {
-      $group: {
-        _id:   { $ifNull: ['$institutionInfo.addresses.governorate', 'Unknown'] },
-        count: { $sum: 1 },
-      },
-    },
-    { $sort: { count: -1 } },
-    { $project: { governorate: '$_id', count: 1, _id: 0 } },
-  ]);
 
-  // Also group donors by phone-prefix carrier (for all donations)
-  const byDonorCarrier = await Donation.aggregate([
-    { $match: { donor: { $exists: true } } },
-    {
-      $lookup: {
-        from:         'users',
-        localField:   'donor',
-        foreignField: '_id',
-        as:           'donorInfo',
-      },
-    },
-    { $unwind: { path: '$donorInfo', preserveNullAndEmpty: false } },
-    {
-      $group: {
-        _id:   { $substr: ['$donorInfo.phone', 0, 3] },
-        count: { $sum: 1 },
-      },
-    },
-    { $sort: { count: -1 } },
-    {
-      $project: {
-        phonePrefix: '$_id',
-        count: 1,
-        carrier: {
-          $switch: {
-            branches: [
-              { case: { $eq: ['$_id', '010'] }, then: 'Vodafone' },
-              { case: { $eq: ['$_id', '011'] }, then: 'Etisalat' },
-              { case: { $eq: ['$_id', '012'] }, then: 'Orange' },
-              { case: { $eq: ['$_id', '015'] }, then: 'WE' },
-            ],
-            default: 'Unknown',
-          },
-        },
-        _id: 0,
-      },
-    },
-  ]);
-
-  return { byGovernorate, byDonorCarrier };
-}
 
 /* ═══════════════════════════════════════════════════════════════
    INSTITUTION ANALYTICS
@@ -707,7 +638,6 @@ module.exports = {
   getDonationAnalytics,
   getDonationTrends,
   getDonationCategories,
-  getDonationGeographic,
   // Institutions
   getInstitutionAnalytics,
   getInstitutionsByType,

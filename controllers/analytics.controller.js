@@ -22,11 +22,6 @@ exports.getDonationCategories = asyncErrorHandler(async (req, res) => {
   sendResponse(res, 200, 'success', 'Donation categories fetched', data);
 });
 
-exports.getDonationGeographic = asyncErrorHandler(async (req, res) => {
-  const data = await analyticsService.getDonationGeographic();
-  sendResponse(res, 200, 'success', 'Donation geographic distribution fetched', data);
-});
-
 /* ── Institutions ──────────────────────────────────────────── */
 
 exports.getInstitutions = asyncErrorHandler(async (req, res) => {

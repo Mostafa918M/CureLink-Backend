@@ -86,18 +86,7 @@ describe('getDonationCategories()', () => {
   });
 });
 
-describe('getDonationGeographic()', () => {
-  it('returns byGovernorate and byDonorCarrier from two aggregation pipelines', async () => {
-    const byGov     = [{ governorate: 'Cairo', count: 40 }];
-    const byCarrier = [{ phonePrefix: '010', carrier: 'Vodafone', count: 55 }];
-    // getDonationGeographic runs TWO Donation.aggregate calls
-    mockAggregate(Donation, byGov, byCarrier);
 
-    const result = await analyticsService.getDonationGeographic();
-    expect(result.byGovernorate).toEqual(byGov);
-    expect(result.byDonorCarrier).toEqual(byCarrier);
-  });
-});
 
 /* ══════════════════════════════════════════════════════════════
    INSTITUTION ANALYTICS

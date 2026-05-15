@@ -155,38 +155,6 @@
  *         $ref: '#/components/responses/Forbidden'
  */
 
-/**
- * @swagger
- * /api/v1/analytics/donations/geographic:
- *   get:
- *     summary: Geographic distribution of donations (by donor phone prefix)
- *     tags: [Analytics]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Donation geographic distribution fetched
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiResponse'
- *             example:
- *               status: success
- *               message: Donation geographic distribution fetched
- *               data:
- *                 data:
- *                   - phonePrefix: "010"
- *                     carrier: Vodafone
- *                     count: 55
- *                   - phonePrefix: "011"
- *                     carrier: Etisalat
- *                     count: 32
- *       401:
- *         $ref: '#/components/responses/Unauthorized'
- *       403:
- *         $ref: '#/components/responses/Forbidden'
- */
-
 /* ══════════════════════════ INSTITUTION ANALYTICS ═══════════════════════ */
 
 /**

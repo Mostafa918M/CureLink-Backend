@@ -15,7 +15,6 @@ router.use(authorize('admin', 'superadmin'));
 router.get('/donations',            analyticsController.getDonations);
 router.get('/donations/trends',     analyticsController.getDonationTrends);
 router.get('/donations/categories', analyticsController.getDonationCategories);
-router.get('/donations/geographic', analyticsController.getDonationGeographic);
 
 /* ── Institution analytics ──────────────────────────────────── */
 router.get('/institutions',              analyticsController.getInstitutions);
