@@ -1,5 +1,6 @@
 // services/Ai.service.js
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { MEDICINE_CATEGORIES } = require('../models/medicine.model');
 
 class AiService {
   async extractDataFromImage(imageBuffers, retries = 3) {
@@ -10,9 +11,11 @@ class AiService {
       const imageParts = imageBuffers.map((buffer) => ({
         inlineData: {
           data: buffer.toString('base64'),
-          mimeType: 'image/jpeg', 
+          mimeType: 'image/jpeg',
         },
       }));
+
+      const categoryList = MEDICINE_CATEGORIES.map((c) => `'${c}'`).join(', ');
 
       const prompt = `
         Analyze the provided images of a medicine and extract these details in strict JSON format:
@@ -20,7 +23,8 @@ class AiService {
           "medicine": {
             "name": "Full medicine name (without strength)",
             "strength": "e.g., 500mg, 1g (if visible, else null)",
-            "dosageForm": "MUST BE EXACTLY ONE OF: 'tablet', 'capsule', 'syrup', 'injection', 'cream', 'drops', 'other' (guess based on packaging, default 'other')"
+            "dosageForm": "MUST BE EXACTLY ONE OF: 'tablet', 'capsule', 'syrup', 'injection', 'cream', 'drops', 'other' (guess based on packaging, default 'other')",
+            "category": "MUST BE EXACTLY ONE OF: ${categoryList}. Choose the most appropriate category based on the medicine's known therapeutic use. Default to 'Other' if uncertain."
           },
           "donation": {
             "expiryDate": "YYYY-MM-DD (If only MM/YYYY is visible, use the last day of that month)",
@@ -32,6 +36,7 @@ class AiService {
         }
         Requirements:
         - Return ONLY the raw JSON object. Do not wrap it in markdown code blocks like \`\`\`json.
+        - The "category" field is mandatory; always provide a value from the allowed list above.
       `;
 
       const result = await model.generateContent([prompt, ...imageParts]);

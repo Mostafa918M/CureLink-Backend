@@ -2,6 +2,7 @@
 const AiService = require('./ai.service');
 const ImageStorageService = require('./imagestorage.service');
 const Donation = require('../models/donation.model');
+const { MEDICINE_CATEGORIES } = require('../models/medicine.model');
 const Medicine = require('../models/medicine.model');
 const ApiError = require('../utils/apiError');
 const notificationService = require('./notification.service');
@@ -59,10 +60,15 @@ class donationService {
           ? medData.dosageForm
           : 'other';
 
+        const category = MEDICINE_CATEGORIES.includes(medData.category)
+          ? medData.category
+          : 'Other';
+
         medicine = await Medicine.create({
           name: medData.name,
           strength: medData.strength || undefined,
           dosageForm: dosageForm,
+          category: category,
           createdBy: userId,
         });
       }
