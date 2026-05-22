@@ -1,14 +1,39 @@
 // services/Ai.service.js
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { MEDICINE_CATEGORIES } = require('../models/medicine.model');
+const imagePreprocessingService = require('./imagePreprocessing.service');
 
 class AiService {
   async extractDataFromImage(imageBuffers, retries = 3) {
+    const preprocessResults = await Promise.all(
+      imageBuffers.map(async (buffer) => {
+        try {
+          return await imagePreprocessingService.preprocessImage(buffer);
+        } catch (err) {
+          console.error('Image preprocessing failed, using original buffer:', err.message);
+          return { processedBuffer: buffer, tempPath: null };
+        }
+      }),
+    );
+
+    const tempPaths = preprocessResults.map((r) => r.tempPath).filter(Boolean);
+
+    try {
+      return await this._callGemini(
+        preprocessResults.map((r) => r.processedBuffer),
+        retries,
+      );
+    } finally {
+      await Promise.all(tempPaths.map((p) => imagePreprocessingService.cleanupTempFile(p)));
+    }
+  }
+
+  async _callGemini(processedBuffers, retries) {
     try {
       const genAI = new GoogleGenerativeAI(process.env.API_KEY);
       const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-      const imageParts = imageBuffers.map((buffer) => ({
+      const imageParts = processedBuffers.map((buffer) => ({
         inlineData: {
           data: buffer.toString('base64'),
           mimeType: 'image/jpeg',
@@ -56,7 +81,7 @@ class AiService {
       if (retries > 0 && error.message.includes('503')) {
         console.log(`Server busy, retrying... (${retries} left)`);
         await new Promise((res) => setTimeout(res, 2000));
-        return this.extractDataFromImage(imageBuffers, retries - 1);
+        return this._callGemini(processedBuffers, retries - 1);
       }
       throw error;
     }
