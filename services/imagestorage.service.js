@@ -10,7 +10,14 @@ class ImageStorageService {
   async uploadImage(fileBuffer) {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
-        .upload_stream({ folder: 'medicine-donations' }, (error, result) => {
+        .upload_stream({ 
+          folder: 'medicine-donations',
+          transformation: [
+            { effect: "grayscale" },
+            { effect: "contrast:80" },
+            { effect: "sharpen" },
+            { quality: 100 }], 
+          },(error, result) => {
           if (error) return reject(error);
           resolve({
             url: result.secure_url,

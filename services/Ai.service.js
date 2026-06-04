@@ -18,7 +18,22 @@ class AiService {
       const categoryList = MEDICINE_CATEGORIES.map((c) => `'${c}'`).join(', ');
 
       const prompt = `
-        Analyze the provided images of a medicine and extract these details in strict JSON format:
+
+      You are an OCR + medicine packaging analysis system.
+      Analyze the provided images of a medicine and extract these details in strict JSON format:
+
+      IMPORTANT OCR RULES:
+      - Medicine packages may contain embossed, blurry, low-contrast, tilted, partially hidden, or noisy text.
+      - Infer missing characters intelligently using pharmaceutical packaging conventions.
+      - Expiry dates MUST always be later than manufacturing dates.
+      - Prices usually end with currency like LE, EGP, $, etc.
+      - Batch numbers are usually alphanumeric.
+      - If only MM/YYYY exists for dates:
+      - manufacturingDate => use first day of month
+      - expiryDate => use last day of month
+      - If a value is uncertain, return the MOST LIKELY value instead of null whenever reasonable.
+      - Never hallucinate impossible values.
+      Return STRICTLY this JSON schema only:
         {
           "medicine": {
             "name": "Full medicine name (without strength)",
@@ -27,6 +42,7 @@ class AiService {
             "category": "MUST BE EXACTLY ONE OF: ${categoryList}. Choose the most appropriate category based on the medicine's known therapeutic use. Default to 'Other' if uncertain."
           },
           "donation": {
+            "manufacturingDate": "YYYY-MM-DD or null",
             "expiryDate": "YYYY-MM-DD (If only MM/YYYY is visible, use the last day of that month)",
             "quantityAmount": "Number of units visible (integer)",
             "quantityUnit": "MUST BE EXACTLY ONE OF: 'box', 'bottle', 'strip', 'unit'",
@@ -37,7 +53,24 @@ class AiService {
         Requirements:
         - Return ONLY the raw JSON object. Do not wrap it in markdown code blocks like \`\`\`json.
         - The "category" field is mandatory; always provide a value from the allowed list above.
-      `;
+        - No markdown.
+        - No explanations.
+        - No extra text.
+        - "dosageForm" MUST be EXACTLY one of:
+          ["tablet","capsule","syrup","injection","cream","drops","other"]
+
+        - "quantityUnit" MUST be EXACTLY one of:
+          ["box","bottle","strip","unit"]
+
+        - "category" MUST be EXACTLY one value from:
+          ${categoryList}
+
+        - If category is uncertain use "Other".
+        - Dates MUST be valid real dates.
+        - expiryDate MUST be after manufacturingDate.
+        - If only MM/YYYY is visible:
+          expiryDate => last day of month
+          manufacturingDate => first day of month`;
 
       const result = await model.generateContent([prompt, ...imageParts]);
       const response = await result.response;
