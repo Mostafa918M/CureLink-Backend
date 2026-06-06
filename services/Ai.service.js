@@ -1,14 +1,39 @@
 // services/Ai.service.js
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { MEDICINE_CATEGORIES } = require('../models/medicine.model');
+const imagePreprocessingService = require('./imagePreprocessing.service');
 
 class AiService {
   async extractDataFromImage(imageBuffers, retries = 3) {
+    const preprocessResults = await Promise.all(
+      imageBuffers.map(async (buffer) => {
+        try {
+          return await imagePreprocessingService.preprocessImage(buffer);
+        } catch (err) {
+          console.error('Image preprocessing failed, using original buffer:', err.message);
+          return { processedBuffer: buffer, tempPath: null };
+        }
+      }),
+    );
+
+    const tempPaths = preprocessResults.map((r) => r.tempPath).filter(Boolean);
+
+    try {
+      return await this._callGemini(
+        preprocessResults.map((r) => r.processedBuffer),
+        retries,
+      );
+    } finally {
+      await Promise.all(tempPaths.map((p) => imagePreprocessingService.cleanupTempFile(p)));
+    }
+  }
+
+  async _callGemini(processedBuffers, retries) {
     try {
       const genAI = new GoogleGenerativeAI(process.env.API_KEY);
       const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-      const imageParts = imageBuffers.map((buffer) => ({
+      const imageParts = processedBuffers.map((buffer) => ({
         inlineData: {
           data: buffer.toString('base64'),
           mimeType: 'image/jpeg',
@@ -18,22 +43,7 @@ class AiService {
       const categoryList = MEDICINE_CATEGORIES.map((c) => `'${c}'`).join(', ');
 
       const prompt = `
-
-      You are an OCR + medicine packaging analysis system.
-      Analyze the provided images of a medicine and extract these details in strict JSON format:
-
-      IMPORTANT OCR RULES:
-      - Medicine packages may contain embossed, blurry, low-contrast, tilted, partially hidden, or noisy text.
-      - Infer missing characters intelligently using pharmaceutical packaging conventions.
-      - Expiry dates MUST always be later than manufacturing dates.
-      - Prices usually end with currency like LE, EGP, $, etc.
-      - Batch numbers are usually alphanumeric.
-      - If only MM/YYYY exists for dates:
-      - manufacturingDate => use first day of month
-      - expiryDate => use last day of month
-      - If a value is uncertain, return the MOST LIKELY value instead of null whenever reasonable.
-      - Never hallucinate impossible values.
-      Return STRICTLY this JSON schema only:
+        Analyze the provided images of a medicine and extract these details in strict JSON format:
         {
           "medicine": {
             "name": "Full medicine name (without strength)",
@@ -42,7 +52,6 @@ class AiService {
             "category": "MUST BE EXACTLY ONE OF: ${categoryList}. Choose the most appropriate category based on the medicine's known therapeutic use. Default to 'Other' if uncertain."
           },
           "donation": {
-            "manufacturingDate": "YYYY-MM-DD or null",
             "expiryDate": "YYYY-MM-DD (If only MM/YYYY is visible, use the last day of that month)",
             "quantityAmount": "Number of units visible (integer)",
             "quantityUnit": "MUST BE EXACTLY ONE OF: 'box', 'bottle', 'strip', 'unit'",
@@ -53,24 +62,7 @@ class AiService {
         Requirements:
         - Return ONLY the raw JSON object. Do not wrap it in markdown code blocks like \`\`\`json.
         - The "category" field is mandatory; always provide a value from the allowed list above.
-        - No markdown.
-        - No explanations.
-        - No extra text.
-        - "dosageForm" MUST be EXACTLY one of:
-          ["tablet","capsule","syrup","injection","cream","drops","other"]
-
-        - "quantityUnit" MUST be EXACTLY one of:
-          ["box","bottle","strip","unit"]
-
-        - "category" MUST be EXACTLY one value from:
-          ${categoryList}
-
-        - If category is uncertain use "Other".
-        - Dates MUST be valid real dates.
-        - expiryDate MUST be after manufacturingDate.
-        - If only MM/YYYY is visible:
-          expiryDate => last day of month
-          manufacturingDate => first day of month`;
+      `;
 
       const result = await model.generateContent([prompt, ...imageParts]);
       const response = await result.response;
@@ -89,9 +81,10 @@ class AiService {
       if (retries > 0 && error.message.includes('503')) {
         console.log(`Server busy, retrying... (${retries} left)`);
         await new Promise((res) => setTimeout(res, 2000));
-        return this.extractDataFromImage(imageBuffers, retries - 1);
+        return this._callGemini(processedBuffers, retries - 1);
       }
       throw error;
+
     }
   }
 }

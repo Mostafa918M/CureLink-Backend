@@ -13,7 +13,6 @@ class ImageStorageService {
         .upload_stream({ 
           folder: 'medicine-donations',
           transformation: [
-            { effect: "grayscale" },
             { effect: "contrast:80" },
             { effect: "sharpen" },
             { quality: 100 }], 
